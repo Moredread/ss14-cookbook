@@ -16,6 +16,7 @@ import {
   Reactant,
   ReactionPrototype,
   ReagentId,
+  ReagentMap,
 } from './prototypes';
 import { getReagentResult, getSolidResult } from './reaction-helpers';
 import {
@@ -75,7 +76,7 @@ export const resolvePrototypes = (
     recipes.set(id, recipe);
   }
 
-  for (const [id, recipe] of reactionRecipes(filtered.reactions)) {
+  for (const [id, recipe] of reactionRecipes(filtered.reactions, filtered.reagents)) {
     recipes.set(id, recipe);
   }
 
@@ -170,13 +171,18 @@ const convertMicrowaveReagents = (
 };
 
 function* reactionRecipes(
-  reactions: readonly ReactionPrototype[]
+  reactions: readonly ReactionPrototype[],
+  reagents: ReagentMap
 ): Generator<[string, ResolvedRecipe]> {
   for (const reaction of reactions) {
     const reagentResult = getReagentResult(reaction);
     const solidResult = getSolidResult(reaction);
     // Add an arbitrary prefix to prevent collisions.
     const id = `r!${reaction.id}`;
+
+    const group = reagentResult
+      ? (reagents.get(reagentResult[0])?.group ?? DefaultRecipeGroup)
+      : DefaultRecipeGroup;
 
     if (
       reaction.requiredMixerCategories &&
@@ -188,7 +194,7 @@ function* reactionRecipes(
           continue;
         }
 
-        const recipe = new ConstructRecipeBuilder();
+        const recipe = new ConstructRecipeBuilder(group);
         if (reagentResult) {
           recipe
             .withReagentResult(reagentResult[0])
@@ -217,7 +223,7 @@ function* reactionRecipes(
           : null,
         reagents: reaction.reactants,
         solids: {},
-        group: DefaultRecipeGroup,
+        group,
       }];
     }
   }
