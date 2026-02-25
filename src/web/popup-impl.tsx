@@ -144,14 +144,10 @@ const enter = (popup: PopupInstance): void => {
 
   popupStack.push(popup);
 
-  if (isNested) {
+  popupTimeoutId = window.setTimeout(() => {
     popup.setVisible(true);
-  } else {
-    popupTimeoutId = window.setTimeout(() => {
-      popup.setVisible(true);
-      popupTimeoutId = null;
-    }, popup.intentTimeout);
-  }
+    popupTimeoutId = null;
+  }, popup.intentTimeout);
 };
 
 const scheduleLeave = (): void => {
