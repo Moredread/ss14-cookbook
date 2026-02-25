@@ -1673,9 +1673,60 @@ select {
       --list-height: auto;
     }
 
-      .explorer_list-inner > .recipe {
+      .explorer_list-inner > .recipe,
+      .explorer_list-inner > .explorer_expandable {
         margin: 4px;
       }
+
+      .explorer_list-inner--has-expanded {
+        flex-wrap: nowrap;
+        width: auto;
+        height: auto;
+      }
+  }
+
+  .explorer_expandable-header {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .explorer_expand-toggle {
+    flex-shrink: 0;
+    padding: 4px;
+    margin-top: 4px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 150ms ease;
+    background: none;
+    border: none;
+    color: inherit;
+  }
+
+    .explorer_expand-toggle:hover {
+      opacity: 1;
+    }
+
+    .explorer_expand-toggle > .icon {
+      display: block;
+      transition: transform 150ms ease;
+    }
+
+    .explorer_expand-toggle--collapsed > .icon {
+      transform: rotate(-90deg);
+    }
+
+  .explorer_expandable-children {
+    margin-left: 12px;
+    padding-left: 8px;
+    border-left: 1px solid var(--explorer-line);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .explorer_expandable--cycle {
+    opacity: 0.4;
   }
 
 .foodseq {

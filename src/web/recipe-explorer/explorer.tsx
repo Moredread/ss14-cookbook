@@ -19,6 +19,8 @@ import { Recipe } from '../recipe';
 import { compareByName } from '../sort';
 import { Tooltip } from '../tooltip';
 import { ExploreFnContext, ExploreRecipeFn } from './context';
+import { ExpandableRecipe } from './expandable-recipe';
+import { getDownstreamRecipes, getUpstreamRecipes } from './relations';
 
 export interface Props {
   id: string;
@@ -155,32 +157,28 @@ const ExploredRecipe = memo(({
 
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
 
-  const madeWith: readonly string[] = useMemo(() => {
-    const result: string[] = [];
-    for (const id of Object.keys(recipe.solids)) {
-      const recipes = recipesBySolidResult.get(id);
-      if (recipes) {
-        result.push(...recipes);
-      }
-    }
-    for (const id of Object.keys(recipe.reagents)) {
-      const recipes = recipesByReagentResult.get(id);
-      if (recipes) {
-        result.push(...recipes);
-      }
-    }
-    return result.sort(compare);
-  }, [recipe, recipesBySolidResult, recipesByReagentResult, compare]);
+  const madeWith: readonly string[] = useMemo(() =>
+    getUpstreamRecipes(recipe, recipesBySolidResult, recipesByReagentResult).sort(compare),
+    [recipe, recipesBySolidResult, recipesByReagentResult, compare]
+  );
 
-  const usedIn = useMemo(() => {
-    let recipes: readonly string[] | undefined;
-    if (recipe.solidResult) {
-      recipes = recipesBySolidIngredient.get(recipe.solidResult);
-    } else if (recipe.reagentResult) {
-      recipes = recipesByReagentIngredient.get(recipe.reagentResult);
-    }
-    return recipes ? recipes.slice().sort(compare) : [];
-  }, [recipe, recipesBySolidIngredient, recipesByReagentIngredient, compare]);
+  const usedIn: readonly string[] = useMemo(() =>
+    getDownstreamRecipes(recipe, recipesBySolidIngredient, recipesByReagentIngredient).sort(compare),
+    [recipe, recipesBySolidIngredient, recipesByReagentIngredient, compare]
+  );
+
+  const rootAncestors = useMemo(() => new Set([id]), [id]);
+
+  const [expandedMadeWith, setExpandedMadeWith] = useState(0);
+  const [expandedUsedIn, setExpandedUsedIn] = useState(0);
+
+  const onMadeWithExpansionChange = useCallback((delta: number) => {
+    setExpandedMadeWith(prev => prev + delta);
+  }, []);
+
+  const onUsedInExpansionChange = useCallback((delta: number) => {
+    setExpandedUsedIn(prev => prev + delta);
+  }, []);
 
   const mainRef = useRef<HTMLDivElement>(null);
   const madeWithRef = useRef<HTMLDivElement>(null);
@@ -191,10 +189,10 @@ const ExploredRecipe = memo(({
     const usedInElem = usedInRef.current;
 
     const resize = () => {
-      if (madeWithElem) {
+      if (madeWithElem && expandedMadeWith === 0) {
         resizeRelatedRecipesList(madeWithElem);
       }
-      if (usedInElem) {
+      if (usedInElem && expandedUsedIn === 0) {
         resizeRelatedRecipesList(usedInElem);
       }
     };
@@ -204,7 +202,7 @@ const ExploredRecipe = memo(({
     return () => {
       window.removeEventListener('resize', resize);
     };
-  }, [recipe, madeWith, usedIn]);
+  }, [recipe, madeWith, usedIn, expandedMadeWith, expandedUsedIn]);
 
   useImperativeHandle(ref, () => ({
     getDimensions(): ExploredRecipeDimensions {
@@ -264,9 +262,20 @@ const ExploredRecipe = memo(({
           }
           ref={madeWithRef}
         >
-          <div className='explorer_list-inner'>
+          <div className={
+            expandedMadeWith > 0
+              ? 'explorer_list-inner explorer_list-inner--has-expanded'
+              : 'explorer_list-inner'
+          }>
             {madeWith.map(id =>
-              <Recipe key={id} id={id} skipDefaultHeaderAction/>
+              <ExpandableRecipe
+                key={id}
+                id={id}
+                direction='upstream'
+                ancestors={rootAncestors}
+                depth={0}
+                onExpansionChange={onMadeWithExpansionChange}
+              />
             )}
           </div>
         </div>
@@ -291,9 +300,20 @@ const ExploredRecipe = memo(({
           }
           ref={usedInRef}
         >
-          <div className='explorer_list-inner'>
+          <div className={
+            expandedUsedIn > 0
+              ? 'explorer_list-inner explorer_list-inner--has-expanded'
+              : 'explorer_list-inner'
+          }>
             {usedIn.map(id =>
-              <Recipe key={id} id={id} skipDefaultHeaderAction/>
+              <ExpandableRecipe
+                key={id}
+                id={id}
+                direction='downstream'
+                ancestors={rootAncestors}
+                depth={0}
+                onExpansionChange={onUsedInExpansionChange}
+              />
             )}
           </div>
         </div>
