@@ -120,7 +120,7 @@ _init-repo:
 _worktree remote branch:
     #!/usr/bin/env bash
     set -euo pipefail
-    dest="{{sources_dir}}/{{remote}}"
+    dest="$(realpath -m "{{sources_dir}}/{{remote}}")"
     if [ -d "$dest" ]; then
         echo "Worktree already exists: $dest"
     else
