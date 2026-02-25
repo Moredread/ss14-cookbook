@@ -93,33 +93,73 @@ interface PopupInstance {
   readonly setVisible: Dispatch<SetStateAction<boolean>>;
 }
 
-let currentPopup: PopupInstance | null = null;
+const popupStack: PopupInstance[] = [];
 let popupTimeoutId: number | null = null;
+let leaveTimeoutId: number | null = null;
 const popups = new Map<TriggerElement, PopupInstance>();
 
-const enter = (popup: PopupInstance): void => {
-  if (currentPopup !== popup) {
-    // One popup at any given time
-    leave();
-
-    currentPopup = popup;
-    if (popupTimeoutId === null) {
-      popupTimeoutId = window.setTimeout(() => {
-        popup.setVisible(true);
-        popupTimeoutId = null;
-      }, popup.intentTimeout);
-    }
+const cancelLeave = (): void => {
+  if (leaveTimeoutId !== null) {
+    clearTimeout(leaveTimeoutId);
+    leaveTimeoutId = null;
   }
 };
 
-const leave = (): void => {
-  if (currentPopup) {
-    if (popupTimeoutId !== null) {
-      clearTimeout(popupTimeoutId);
-      popupTimeoutId = null;
+const closeAll = (): void => {
+  cancelLeave();
+  if (popupTimeoutId !== null) {
+    clearTimeout(popupTimeoutId);
+    popupTimeoutId = null;
+  }
+  for (const p of popupStack) {
+    p.setVisible(false);
+  }
+  popupStack.length = 0;
+};
+
+const enter = (popup: PopupInstance): void => {
+  cancelLeave();
+
+  // Already the top of the stack
+  if (popupStack.length > 0 && popupStack[popupStack.length - 1] === popup) {
+    return;
+  }
+
+  // Re-entering a popup lower in the stack — close everything above it
+  const existingIndex = popupStack.indexOf(popup);
+  if (existingIndex !== -1) {
+    for (let i = popupStack.length - 1; i > existingIndex; i--) {
+      popupStack[i].setVisible(false);
     }
-    currentPopup.setVisible(false);
-    currentPopup = null;
+    popupStack.length = existingIndex + 1;
+    return;
+  }
+
+  // Nested popup: trigger is inside the popup root (i.e. inside an open popup)
+  const isNested = popupStack.length > 0 && root !== null && root.contains(popup.trigger);
+
+  if (!isNested) {
+    closeAll();
+  }
+
+  popupStack.push(popup);
+
+  if (isNested) {
+    popup.setVisible(true);
+  } else {
+    popupTimeoutId = window.setTimeout(() => {
+      popup.setVisible(true);
+      popupTimeoutId = null;
+    }, popup.intentTimeout);
+  }
+};
+
+const scheduleLeave = (): void => {
+  if (leaveTimeoutId === null) {
+    leaveTimeoutId = window.setTimeout(() => {
+      leaveTimeoutId = null;
+      closeAll();
+    }, 100);
   }
 };
 
@@ -134,29 +174,26 @@ const mouseMove = (e: MouseEvent): void => {
 
   if (popup) {
     enter(popup);
+  } else if (popupStack.length > 0 && root && root.contains(e.target as Node)) {
+    cancelLeave();
   } else {
-    leave();
+    scheduleLeave();
   }
 };
 
 const focus = (e: FocusEvent): void => {
-  // Unlike mouse movements, we don't show a popup on focused descendants.
-  // The exact popup trigger must be focused.
   const popup = popups.get(e.target as TriggerElement);
   if (popup) {
     enter(popup);
   } else {
-    leave();
+    closeAll();
   }
 };
 
 const blur = (e: FocusEvent): void => {
-  // relatedTarget is the target that's *gaining* focus. If we're moving from
-  // one popup trigger to another, let focus handle it. Otherwise, close the
-  // current popup.
   const nextPopup = popups.get(e.relatedTarget as TriggerElement);
   if (!nextPopup) {
-    leave();
+    closeAll();
   }
 };
 
@@ -165,7 +202,7 @@ const register = (inst: PopupInstance): void => {
     window.addEventListener('mousemove', mouseMove);
     window.addEventListener('focusin', focus);
     window.addEventListener('focusout', blur);
-    window.addEventListener('scroll', leave);
+    window.addEventListener('scroll', closeAll);
   }
   popups.set(inst.trigger, inst);
 };
@@ -176,10 +213,14 @@ const unregister = (inst: PopupInstance): void => {
     window.removeEventListener('mousemove', mouseMove);
     window.removeEventListener('focusin', focus);
     window.removeEventListener('focusout', blur);
-    window.removeEventListener('scroll', leave);
+    window.removeEventListener('scroll', closeAll);
   }
-  if (currentPopup === inst) {
-    leave();
+  const idx = popupStack.indexOf(inst);
+  if (idx !== -1) {
+    for (let i = popupStack.length - 1; i >= idx; i--) {
+      popupStack[i].setVisible(false);
+    }
+    popupStack.length = idx;
   }
 };
 
