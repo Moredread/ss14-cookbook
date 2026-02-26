@@ -22,6 +22,9 @@ pull-all: pull-base pull-frontier pull-delta-v pull-rmc pull-floof pull-impstati
 gen:
     npm run gen:recipes
 
+# Build and generate recipe data
+generate: build gen
+
 # Dev build with watch
 watch:
     npm run watch
