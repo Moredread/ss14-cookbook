@@ -45,7 +45,8 @@ export const findIngredients = (
           visited,
         );
 
-        const reagent = reagents.get(reagentId)!;
+        const reagent = reagents.get(reagentId);
+        if (!reagent) continue;
         for (const source of reagent.sources) {
           const sourceIngredient = resolveIngredient(result, 'solid', source);
           sourceIngredient.sourceOfReagent.add(reagentId);
@@ -119,8 +120,8 @@ export const ingredientName = (
 ) => {
   switch (ingredient.type) {
     case 'solid':
-      return entities.get(ingredient.entityId)!.name;
+      return entities.get(ingredient.entityId)?.name ?? ingredient.entityId;
     case 'reagent':
-      return reagents.get(ingredient.reagentId)!.name;
+      return reagents.get(ingredient.reagentId)?.name ?? ingredient.reagentId;
   }
 };

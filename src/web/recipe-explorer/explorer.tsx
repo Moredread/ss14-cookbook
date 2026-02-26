@@ -149,8 +149,9 @@ const ExploredRecipe = memo(({
   const compare = useMemo(() => {
     const compareRecipes = compareByName(entityMap, reagentMap);
     return (a: string, b: string): number => {
-      const recipeA = recipeMap.get(a)!;
-      const recipeB = recipeMap.get(b)!;
+      const recipeA = recipeMap.get(a);
+      const recipeB = recipeMap.get(b);
+      if (!recipeA || !recipeB) return 0;
       return compareRecipes(recipeA, recipeB);
     };
   }, [recipeMap, entityMap, reagentMap]);

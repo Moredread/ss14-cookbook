@@ -61,7 +61,7 @@ export const searchByName = (
 ): Recipe[] => {
   query = prepareSearchQuery(query);
   return recipes.filter(recipe => {
-    const name = recipeNames.get(recipe.id)!;
+    const name = recipeNames.get(recipe.id) ?? '';
     return name.includes(query);
   });
 };
@@ -134,7 +134,8 @@ const applyNonIngredientFilter = (
       if (!recipe.solidResult) {
         return false;
       }
-      const solid = entityMap.get(recipe.solidResult)!;
+      const solid = entityMap.get(recipe.solidResult);
+      if (!solid) return false;
       return (solid.traits & filter.specials) === filter.specials;
     });
   }
@@ -235,7 +236,7 @@ export const filterIngredientsByName = (
 ): string[] => {
   query = prepareSearchQuery(query);
   return ingredients.filter(id => {
-    const name = map.get(id)!.name;
+    const name = map.get(id)?.name ?? id;
     return name.toLowerCase().includes(query);
   });
 };

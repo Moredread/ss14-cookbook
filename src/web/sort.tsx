@@ -49,8 +49,8 @@ export const getRecipeName = (
   reagents: ReadonlyMap<string, Reagent>
 ): string =>
   recipe.solidResult
-    ? entities.get(recipe.solidResult)!.name
-    : reagents.get(recipe.reagentResult!)!.name;
+    ? (entities.get(recipe.solidResult)?.name ?? recipe.solidResult)
+    : (reagents.get(recipe.reagentResult!)?.name ?? recipe.reagentResult!);
 
 const MethodOrder: Readonly<Record<DisplayMethod, number>> = {
   microwave: 0,

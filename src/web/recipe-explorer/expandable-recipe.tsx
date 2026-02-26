@@ -50,8 +50,9 @@ export const ExpandableRecipe = memo(({
     }
     const compare = compareByName(entityMap, reagentMap);
     const compareRecipes = (a: string, b: string): number => {
-      const recipeA = recipeMap.get(a)!;
-      const recipeB = recipeMap.get(b)!;
+      const recipeA = recipeMap.get(a);
+      const recipeB = recipeMap.get(b);
+      if (!recipeA || !recipeB) return 0;
       return compare(recipeA, recipeB);
     };
 

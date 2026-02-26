@@ -252,8 +252,8 @@ const IngredientFilter = ({
     }
 
     return filteredIngredients.sort((a, b) => {
-      const nameA = entityMap.get(a)!.name;
-      const nameB = entityMap.get(b)!.name;
+      const nameA = entityMap.get(a)?.name ?? a;
+      const nameB = entityMap.get(b)?.name ?? b;
       return NeutralCollator.compare(nameA, nameB);
     });
   }, [
@@ -312,7 +312,7 @@ const IngredientFilter = ({
           onClick={toggle}
         >
           <EntitySprite id={id}/>
-          <span>{entityMap.get(id)!.name}</span>
+          <span>{entityMap.get(id)?.name ?? id}</span>
         </FilterOption>
       )}
     </ul>

@@ -38,7 +38,8 @@ export const IngredientSuggestions = memo(({
     if (/\S/.test(search)) {
       const query = prepareSearchQuery(search);
       for (const id of ingredients) {
-        const entity = entityMap.get(id)!;
+        const entity = entityMap.get(id);
+        if (!entity) continue;
         if (entity.name.toLowerCase().includes(query)) {
           results.push(['solid', entity]);
         }

@@ -23,21 +23,21 @@ export const SeqStartPoint = memo(({
 
   const seqStart = entity.seqStart!;
   const elements = useMemo(() => {
-    return foodSequenceElements.get(seqStart.key)!
+    return (foodSequenceElements.get(seqStart.key) ?? [])
       .slice(0)
       .sort((a, b) => {
-        const entA = entityMap.get(a)!;
-        const entB = entityMap.get(b)!;
-        return NeutralCollator.compare(entA.name, entB.name);
+        const nameA = entityMap.get(a)?.name ?? a;
+        const nameB = entityMap.get(b)?.name ?? b;
+        return NeutralCollator.compare(nameA, nameB);
       });
   }, [seqStart, foodSequenceElements, entityMap]);
   const endPoints = useMemo(() => {
     return foodSequenceEndPoints.get(seqStart.key)
       ?.slice(0)
       .sort((a, b) => {
-        const entA = entityMap.get(a)!;
-        const entB = entityMap.get(b)!;
-        return NeutralCollator.compare(entA.name, entB.name);
+        const nameA = entityMap.get(a)?.name ?? a;
+        const nameB = entityMap.get(b)?.name ?? b;
+        return NeutralCollator.compare(nameA, nameB);
       });
   }, [seqStart, foodSequenceEndPoints, entityMap]);
 
@@ -73,17 +73,18 @@ interface SeqElementProps {
 const SeqElement = ({ id }: SeqElementProps): ReactElement => {
   const { recipesBySolidResult, entityMap } = useGameData();
 
-  const entity = entityMap.get(id)!;
-  const recipe = recipesBySolidResult.get(entity.id);
+  const entity = entityMap.get(id);
+  const name = entity?.name ?? id;
+  const recipe = recipesBySolidResult.get(id);
 
   return (
-    <li className='foodseq_element' data-entity-id={entity.id}>
-      <EntitySprite id={entity.id}/>
+    <li className='foodseq_element' data-entity-id={id}>
+      <EntitySprite id={id}/>
       {recipe ? (
         <RecipePopup id={recipe}>
-          <span className='more-info'>{entity.name}</span>
+          <span className='more-info'>{name}</span>
         </RecipePopup>
-      ) : <span>{entity.name}</span>}
+      ) : <span>{name}</span>}
     </li>
   );
 };

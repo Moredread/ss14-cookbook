@@ -15,7 +15,10 @@ export const RecipeTraits = ({
   if (!recipe.solidResult) {
     return null;
   }
-  const solidResult = entityMap.get(recipe.solidResult)!;
+  const solidResult = entityMap.get(recipe.solidResult);
+  if (!solidResult) {
+    return null;
+  }
   const traits = solidResult.traits;
   if (traits === 0) {
     // No traits, nothing to show!

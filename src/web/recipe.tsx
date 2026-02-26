@@ -120,7 +120,8 @@ const defaultHeaderAction = (
   entities: ReadonlyMap<string, Entity>
 ): ReactElement | null => {
   if (recipe.solidResult) {
-    const entity = entities.get(recipe.solidResult)!;
+    const entity = entities.get(recipe.solidResult);
+    if (!entity) return null;
     if (entity.seqStart) {
       return <SeqStartButton entityId={entity.id}/>;
     }
@@ -199,13 +200,14 @@ const SeqElemList = ({ sequences }: SeqElemListProps): ReactNode => {
   const { foodSequenceStartPoints, entityMap } = useGameData();
   return (
     sequences
-      .flatMap(k => foodSequenceStartPoints.get(k)!)
+      .flatMap(k => foodSequenceStartPoints.get(k) ?? [])
       .map(id => {
-        const startEnt = entityMap.get(id)!;
+        const startEnt = entityMap.get(id);
+        const name = startEnt?.name ?? id;
         return (
           <p key={id} className='popup_entity'>
-            <EntitySprite id={startEnt.id}/>
-            {startEnt.name}
+            <EntitySprite id={id}/>
+            {name}
           </p>
         );
       })

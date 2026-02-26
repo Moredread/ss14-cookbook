@@ -76,7 +76,7 @@ const Ingredient = memo(({
     }
 
     const reagentNames = Array.from(ingredient.sourceOfReagent, id =>
-      reagentMap.get(id)!.name
+      reagentMap.get(id)?.name ?? id
     );
     reagentNames.sort((a, b) => NeutralCollator.compare(a, b));
     return `Source of: ${reagentNames.join(', ')}`;
@@ -88,9 +88,10 @@ const Ingredient = memo(({
     }
 
     const recipeNames = dedupe(
-      Array.from(ingredient.usedBy, id =>
-        getRecipeName(recipeMap.get(id)!, entityMap, reagentMap)
-      )
+      Array.from(ingredient.usedBy, id => {
+        const recipe = recipeMap.get(id);
+        return recipe ? getRecipeName(recipe, entityMap, reagentMap) : id;
+      })
     );
     recipeNames.sort((a, b) => NeutralCollator.compare(a, b));
     return `Used by: ${recipeNames.join(', ')}`;
