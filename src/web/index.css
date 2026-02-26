@@ -1661,13 +1661,16 @@ select {
      * put a margin on recipes in the .explorer_list instead of using gap.
      * Otherwise `width: max-content` fails to take the gap into account when
      * wrapping boxes, and the size gets all wonky.
+     *
+     * --list-width is set by JS to work around a Firefox bug where
+     * width: max-content doesn't account for column wrapping.
      */
     .explorer_list-inner {
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       flex-wrap: wrap;
-      width: max-content;
+      width: var(--list-width, max-content);
       margin: -4px;
       height: var(--list-height);
       --list-height: auto;
