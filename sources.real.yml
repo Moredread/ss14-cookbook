@@ -306,6 +306,25 @@ impstation:
   forceIncludeReagentSources: *reagentSources
   spriteOffsets: *standardSpriteOffsets
 
+goobstation:
+  name: "Goob Station"
+  description: "Popular community fork with unique content and mechanics."
+  path: "../cookbook-sources/goobstation"
+  repo: "Goob-Station/Goob-Station"
+  methodEntities: *baseMethods
+  mixFillState: beakerlarge4
+  specialDiets:
+    - *reptilianDiet
+    - *mothDiet
+  specialReagents:
+    - *theobromine
+  sortingIdRewrites: *baseRewrites
+  ignoredSpecialRecipes: *ignoredSpecialRecipes
+  ignoredFoodSequenceElements: *ignoredFoodSequenceElements
+  ignoreSourcesOf: *ignoredSources
+  forceIncludeReagentSources: *reagentSources
+  spriteOffsets: *legacySpriteOffsets
+
 moff:
   name: "Moff Station"
   description: "MRP station-based fork focused on silly antics and custom content."

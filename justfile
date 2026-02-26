@@ -13,10 +13,10 @@ fetch-all:
     git -C {{repo_dir}} fetch --all
 
 # Create/update all worktrees
-worktrees: wt-base wt-frontier wt-delta-v wt-rmc wt-floof wt-impstation wt-moff
+worktrees: wt-base wt-frontier wt-delta-v wt-rmc wt-floof wt-impstation wt-goobstation wt-moff
 
 # Pull all forks to latest
-pull-all: pull-base pull-frontier pull-delta-v pull-rmc pull-floof pull-impstation pull-moff
+pull-all: pull-base pull-frontier pull-delta-v pull-rmc pull-floof pull-impstation pull-goobstation pull-moff
 
 # Generate recipe data
 gen:
@@ -55,6 +55,7 @@ add-remotes:
     add_remote rmc      https://github.com/RMC-14/RMC-14.git
     add_remote floof    https://github.com/Fansana/floofstation1.git
     add_remote impstation https://github.com/impstation/imp-station-14.git
+    add_remote goobstation https://github.com/Goob-Station/Goob-Station.git
     add_remote moff     https://github.com/moff-station/moff-station-14.git
 
 # --- Worktree targets ---
@@ -76,6 +77,9 @@ wt-floof:
 
 wt-impstation:
     @just _worktree impstation master
+
+wt-goobstation:
+    @just _worktree goobstation master
 
 wt-moff:
     @just _worktree moff master
@@ -99,6 +103,9 @@ pull-floof:
 
 pull-impstation:
     @just _pull impstation master
+
+pull-goobstation:
+    @just _pull goobstation master
 
 pull-moff:
     @just _pull moff master
