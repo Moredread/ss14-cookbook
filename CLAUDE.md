@@ -39,6 +39,22 @@ npm run diff:recipes
 
 There are no tests in this project. There is no hot module reloading — manually refresh the browser after changes.
 
+A `justfile` provides commands for managing fork source repos:
+
+```bash
+# First-time setup: clone base repo, add remotes, create worktrees
+just setup
+
+# Fetch all remotes / pull all forks to latest
+just fetch-all
+just pull-all
+
+# Generate recipe data / dev build / dev server
+just gen
+just watch
+just serve
+```
+
 ## Setup for Recipe Generation
 
 The generator requires local clones of SS14 fork repos (it does NOT clone them). Configure fork sources by copying `sources.example.yml` or `sources.real.yml` to `sources.yml`. The clones don't need full initialization (no `RUN_THIS.py` or dotnet needed) — only `Resources/` YAML and sprite data are read.
@@ -58,10 +74,10 @@ Environment variables are configured via `.env` (production) and `.env.developme
 
 Entry point: `src/gen/index.ts`. Reads `sources.yml`, then per fork runs these stages:
 
-1. **`read-raw.ts`** — Scans `Resources/Prototypes/**/*.yml` in the fork repo, parses YAML (with custom `!type:T` tag support), loads raw prototype maps (entity, reagent, stack, constructionGraph, metamorphRecipe, foodSequenceElement, microwaveMealRecipe, reaction)
+1. **`read-raw.ts`** — Scans `Resources/Prototypes/**/*.yml` in the fork repo, parses YAML (with custom `!type:T` tag support), loads raw prototype maps (entity, reagent, stack, constructionGraph, construction, metamorphRecipe, foodSequenceElement, microwaveMealRecipe, reaction). Also resolves reagent `group` inheritance through parent chains.
 2. **`resolve-components.ts`** — Traverses entity prototype inheritance chains, produces fully-resolved entities with merged component data
-3. **`filter-relevant.ts`** — Starting from microwave recipe results, iteratively expands a "relevant set" of entities/reagents by traversing all recipe types (microwave, metamorph, cut, butcher, roll, heat, construct, deep fry, chemical reactions, grindable produce)
-4. **`resolve-prototypes.ts`** — Resolves IDs to localized names via Fluent `.ftl` files, finalizes recipe structures
+3. **`filter-relevant.ts`** — Starting from microwave recipe results, iteratively expands a "relevant set" of entities/reagents by traversing all recipe types (microwave, metamorph, cut, butcher, roll, heat, construct, craft, deep fry, chemical reactions, grindable produce). Drink-producing reactions are seeded as a root set. Crafting recipes are extracted from `type: construction` prototypes via BFS through construction graphs.
+4. **`resolve-prototypes.ts`** — Resolves IDs to localized names via Fluent `.ftl` files, localizes construction category keys (e.g. `construction-category-weapons`), assigns reagent group to reaction recipes, finalizes recipe structures
 5. **`resolve-specials.ts`** — Resolves special diet and reagent markers
 6. **`build-spritesheet.ts`** — Reads RSI sprite PNGs, composites into a single sprite sheet (24 wide, 32x32 each), outputs as WebP
 7. **`save-data.ts`** — Writes per-fork JSON and master `index.json` to `public/data/` with SHA1 content hashes in filenames
@@ -74,6 +90,7 @@ Recipe IDs in the generated data follow these patterns:
 - Butcher: `butcher!EntityId:SpawnedEntityId`
 - Reaction/mix: `r!ReactionId`
 - Metamorph: `m!MetamorphRecipeId`
+- Craft (from construction prototypes): `craft!ConstructionId`
 - General construct: `construct!EntityId:ResultId`
 
 ### Frontend (`src/web/`)
@@ -88,14 +105,28 @@ Key context providers (nested in `App` → `Cookbook`): `SettingsProvider`, `Gam
 
 Sprites are rendered via CSS `background-position` offsets into a single WebP sprite sheet loaded via `--sprite-url` custom property.
 
+### Recipe Explorer (`src/web/recipe-explorer/`)
+
+The recipe explorer is a popup overlay that shows a recipe with its upstream ("Made with") and downstream ("Used in") related recipes. Related recipes are expandable in a tree structure with cycle detection (via ancestor set tracking). Relation lookups use index maps (`recipesBySolidResult`, `recipesBySolidIngredient`, `recipesByReagentResult`, `recipesByReagentIngredient`) from `GameDataProvider`. The column layout auto-balances heights.
+
+### Popup System (`src/web/popup-impl.tsx`)
+
+Popups use a stack-based model (not single-popup) to support nested popups (e.g. hovering an ingredient inside an open recipe popup). The stack tracks open popups in order; entering a popup nested inside the current top is pushed, while entering a non-nested popup closes the entire stack first. Mouse leave uses a 100ms debounce to prevent flickering.
+
 ### Shared Types
 
 `src/types.ts` defines shared types used by both generator and frontend (`GameData`, `Entity`, `Reagent`, `Recipe` variants, `SpritePoint`). The frontend has additional types in `src/web/types.ts` (`SearchableRecipeData`, `DisplayMethod`).
 
+### ConstructRecipeBuilder (`src/gen/construct-recipe-builder.ts`)
+
+Fluent builder used by `filter-relevant.ts` to construct all non-microwave, non-reaction recipes (cut, roll, heat, butcher, metamorph, craft). The builder collects solid/reagent ingredients automatically from pushed steps, determines a `mainVerb` from the step types, and produces a `ResolvedConstructionRecipe`. Used for slicing, rolling, heating, metamorph, crafting, and butcher recipes.
+
 ## Key Files
 
 - `src/gen/constants.ts` — Hardcoded game defaults that must mirror C# game values (DefaultCookTime, DefaultTotalSliceCount, etc.)
+- `src/gen/construct-recipe-builder.ts` — Builder for all construct-method recipes (see above)
 - `sources.yml` — Active fork config (not committed); `sources.example.yml` and `sources.real.yml` are references
+- `justfile` — Task runner for managing fork source repos (setup, fetch, worktrees, pull)
 - `privacy.html` — Privacy policy HTML snippet (not committed), injected at build time via `dangerouslySetInnerHTML`
 - `bin/recipe-gen.js` — Compiled generator output (git-tracked)
 - `public/data/` — Generated output directory; old files are never cleaned automatically
