@@ -180,6 +180,7 @@ export type ConstructionStep =
   | AddStep
   | AddReagentStep
   | SimpleInteractionStep
+  | ToolStep
   | AlsoMakesStep
   ;
 
@@ -236,6 +237,12 @@ export interface HeatMixtureStep {
 /** Simple, single-verb interaction that doesn't need any extra data. */
 export interface SimpleInteractionStep {
   readonly type: 'cut' | 'roll' | 'stir' | 'shake';
+}
+
+/** A construction step that requires a specific tool. */
+export interface ToolStep {
+  readonly type: 'tool';
+  readonly tool: string;
 }
 
 /** A pseudo-step that informs the user that the recipe makes other things. */

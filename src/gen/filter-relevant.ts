@@ -3,7 +3,11 @@ import { EntitySpawnEntry, Solution } from './components';
 import { DefaultRecipeGroup, MixerCategoryToStepType } from './constants';
 import { ConstructRecipeBuilder } from './construct-recipe-builder';
 import {
+  ConstructionGraphEdge,
   ConstructionGraphMap,
+  ConstructionGraphNode,
+  ConstructionMap,
+  ConstructionPrototype,
   EntityId,
   FoodSequenceElementId,
   FoodSequenceElementMap,
@@ -79,6 +83,16 @@ export const filterRelevantPrototypes = (
     usedReagents,
     allEntities,
     raw.foodSequenceElements
+  );
+
+  // Add crafting recipes from `type: construction` prototypes.
+  addCraftingRecipes(
+    raw.constructions,
+    raw.constructionGraphs,
+    raw.stacks,
+    specialRecipes,
+    usedEntities,
+    allEntities
   );
 
   const reactions = new Map<ReactionId, ReactionPrototype>();
@@ -334,6 +348,133 @@ const addMetamorphRecipes = (
   }
 };
 
+const addCraftingRecipes = (
+  constructions: ConstructionMap,
+  constructionGraphs: ConstructionGraphMap,
+  stacks: StackMap,
+  specialRecipes: Map<string, ResolvedSpecialRecipe>,
+  usedEntities: Set<EntityId>,
+  allEntities: ResolvedEntityMap
+): void => {
+  for (const constr of constructions.values()) {
+    const graph = constructionGraphs.get(constr.graph);
+    if (!graph) {
+      console.warn(`Construction ${constr.id}: unknown graph ${constr.graph}`);
+      continue;
+    }
+
+    const path = findGraphPath(graph.graph, constr.startNode, constr.targetNode);
+    if (!path) {
+      // Many constructions have conditions on all edges (walls, airlocks, etc.)
+      // so this is expected and not worth warning about.
+      continue;
+    }
+
+    // Find the result entity from the target node
+    const targetNode = graph.graph.find(n => n.node === constr.targetNode);
+    if (!targetNode?.entity) {
+      continue;
+    }
+
+    // Skip if the result entity doesn't exist or can't be rendered
+    const resultEntity = allEntities.get(targetNode.entity);
+    if (!resultEntity || !hasRenderableSprite(resultEntity)) {
+      continue;
+    }
+
+    // Use the raw category key as the group; resolve-prototypes.ts will
+    // localize it later via the Fluent bundle.
+    const group = constr.category ?? DefaultRecipeGroup;
+    const builder = new ConstructRecipeBuilder(group)
+      .withSolidResult(targetNode.entity);
+
+    let skipped = false;
+    for (const edge of path) {
+      for (const step of edge.steps) {
+        if (step.material) {
+          const stack = stacks.get(step.material);
+          if (!stack) {
+            skipped = true;
+            break;
+          }
+          const spawnEntity = allEntities.get(stack.spawn);
+          if (!spawnEntity || !hasRenderableSprite(spawnEntity)) {
+            skipped = true;
+            break;
+          }
+          const amount = step.amount ?? 1;
+          builder.addSolid(stack.spawn, amount, amount);
+        } else if (step.tool) {
+          builder.useTool(step.tool);
+        } else if (step.tag) {
+          const usableEntities = findTargetEntityByTag(step.tag, allEntities);
+          if (usableEntities) {
+            builder.addSolid(usableEntities);
+          }
+        } else if (step.minTemperature != null) {
+          builder.heat(step.minTemperature);
+        }
+      }
+      if (skipped) break;
+    }
+    if (skipped) continue;
+
+    const recipe = builder.toRecipe();
+
+    // Verify all referenced entities exist and are renderable
+    if (!allRecipeEntitiesRenderable(recipe, allEntities)) {
+      continue;
+    }
+
+    const recipeId = `craft!${constr.id}`;
+    collectRefs(usedEntities, new Set(), recipe);
+    specialRecipes.set(recipeId, recipe);
+  }
+};
+
+/**
+ * BFS to find a path (sequence of edges) from startNode to targetNode
+ * in a construction graph. Skips edges with conditions.
+ */
+const findGraphPath = (
+  nodes: readonly ConstructionGraphNode[],
+  startNode: string,
+  targetNode: string
+): ConstructionGraphEdge[] | null => {
+  const nodeMap = new Map<string, ConstructionGraphNode>();
+  for (const node of nodes) {
+    nodeMap.set(node.node, node);
+  }
+
+  const start = nodeMap.get(startNode);
+  if (!start) return null;
+
+  const queue: [string, ConstructionGraphEdge[]][] = [[startNode, []]];
+  const visited = new Set<string>([startNode]);
+
+  while (queue.length > 0) {
+    const [current, edgesPath] = queue.shift()!;
+    const node = nodeMap.get(current);
+    if (!node?.edges) continue;
+
+    for (const edge of node.edges) {
+      if (edge.conditions && edge.conditions.length > 0) {
+        continue;
+      }
+      const newPath = [...edgesPath, edge];
+      if (edge.to === targetNode) {
+        return newPath;
+      }
+      if (!visited.has(edge.to)) {
+        visited.add(edge.to);
+        queue.push([edge.to, newPath]);
+      }
+    }
+  }
+
+  return null;
+};
+
 const findMetamorphIngredients = (
   allEntities: ResolvedEntityMap,
   targetSequence: TagId,
@@ -579,6 +720,28 @@ const getAllGuaranteedUsableSpawns = (
 const isEdible = (entity: ResolvedEntity): boolean =>
   entity.components.has('Food') || // Legacy component
   entity.components.has('Edible'); // New thing
+
+const hasRenderableSprite = (entity: ResolvedEntity): boolean => {
+  const { sprite } = entity;
+  if (sprite.path && sprite.state) return true;
+  return sprite.layers.some(l => l.visible && l.state && (l.path ?? sprite.path));
+};
+
+const allRecipeEntitiesRenderable = (
+  recipe: ResolvedSpecialRecipe,
+  allEntities: ResolvedEntityMap
+): boolean => {
+  const checkEntity = (id: EntityId): boolean => {
+    const ent = allEntities.get(id);
+    return ent != null && hasRenderableSprite(ent);
+  };
+
+  if (recipe.solidResult && !checkEntity(recipe.solidResult)) return false;
+  for (const id of Object.keys(recipe.solids)) {
+    if (!checkEntity(id as EntityId)) return false;
+  }
+  return true;
+};
 
 const collectRefs = (
   usedEntities: Set<EntityId>,

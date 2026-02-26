@@ -4,6 +4,7 @@ import {
   OneOrMoreEntities,
   ReagentIngredient,
   SimpleInteractionStep,
+  ToolStep,
 } from '../types';
 import { DefaultRecipeGroup } from './constants';
 import { EntityId, ReagentId } from './prototypes';
@@ -159,6 +160,10 @@ export class ConstructRecipeBuilder {
     return this.pushStep(ShakeStep);
   }
 
+  public useTool(tool: string): this {
+    return this.pushStep({ type: 'tool', tool });
+  }
+
   public alsoMakes(entity: OneOrMoreEntities): this {
     return this.pushStep({ type: 'alsoMakes', entity });
   }
@@ -193,7 +198,8 @@ export class ConstructRecipeBuilder {
       case 'roll':
       case 'stir':
       case 'shake':
-        // No ingredients
+      case 'tool':
+        // No ingredients (tools are not consumed)
         break;
     }
   }

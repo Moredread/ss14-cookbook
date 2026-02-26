@@ -8,6 +8,7 @@ export type ProtoId<T extends string> = string & {
 };
 
 export type ConstructionGraphId = ProtoId<'constructionGraph'>;
+export type ConstructionId = ProtoId<'construction'>;
 export type EntityId = ProtoId<'entity'>;
 export type FoodSequenceElementId = ProtoId<'foodSequenceElement'>;
 export type MetamorphRecipeId = ProtoId<'metamorphRecipe'>;
@@ -22,6 +23,7 @@ export type ConstructionGraphMap = ReadonlyMap<
   ConstructionGraphId,
   ConstructionGraphPrototype
 >;
+export type ConstructionMap = ReadonlyMap<ConstructionId, ConstructionPrototype>;
 export type EntityMap = ReadonlyMap<EntityId, EntityPrototype>;
 export type FoodSequenceElementMap = ReadonlyMap<
   FoodSequenceElementId,
@@ -36,6 +38,7 @@ export type StackMap = ReadonlyMap<StackId, StackPrototype>;
 
 export type RelevantPrototype =
   | ConstructionGraphPrototype
+  | ConstructionPrototype
   | EntityPrototype
   | FoodSequenceElementPrototype
   | MetamorphRecipePrototype
@@ -113,6 +116,15 @@ export interface StackPrototype {
   readonly spawn: EntityId;
 }
 
+export interface ConstructionPrototype extends PlainObject {
+  readonly type: 'construction';
+  readonly id: ConstructionId;
+  readonly graph: ConstructionGraphId;
+  readonly startNode: string;
+  readonly targetNode: string;
+  readonly category?: string;
+}
+
 export interface ConstructionGraphPrototype {
   readonly type: 'constructionGraph';
   readonly id: ConstructionGraphId;
@@ -134,6 +146,8 @@ export interface ConstructionGraphEdge {
 
 export interface ConstructionGraphStep {
   readonly tool?: string;
+  readonly material?: StackId;
+  readonly amount?: number;
   readonly minTemperature?: number;
   readonly maxTemperature?: number;
   readonly tag?: TagId;
@@ -210,6 +224,7 @@ export interface MinMax {
 }
 
 const RelevantPrototypeTypes: ReadonlySet<string> = new Set([
+  'construction',
   'constructionGraph',
   'entity',
   'foodSequenceElement',
