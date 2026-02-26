@@ -145,10 +145,12 @@ interface AddStepProps {
 const AddStep = ({ step }: AddStepProps): ReactElement => {
   let text: string;
   if (step.minCount) {
-    if (step.maxCount) {
+    if (step.maxCount && step.maxCount !== step.minCount) {
       text = `Add ${step.minCount} to ${step.maxCount} `;
-    } else {
+    } else if (!step.maxCount) {
       text = `Add ${step.minCount} or more`;
+    } else {
+      text = `Add ${step.minCount} `;
     }
   } else if (step.maxCount) {
     text = `Add up to ${step.maxCount} `;
