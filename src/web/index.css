@@ -2183,7 +2183,6 @@ select {
   z-index: 1000; /* on top of everything else */
   animation-name: popup-enter;
   animation-duration: 100ms;
-  pointer-events: none;
 }
 
   .popup--tooltip {
