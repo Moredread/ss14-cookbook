@@ -73,7 +73,16 @@ export const resolvePrototypes = (
   }
 
   for (const [id, recipe] of filtered.specialRecipes) {
-    recipes.set(id, recipe);
+    // Localize construction category keys (e.g. "construction-category-weapons" → "Weapons")
+    if (id.startsWith('craft!') && recipe.group.startsWith('construction-category-')) {
+      const msg = fluentBundle.getMessage(recipe.group);
+      const localizedGroup = msg?.value
+        ? fluentBundle.formatPattern(msg.value)
+        : recipe.group;
+      recipes.set(id, { ...recipe, group: localizedGroup });
+    } else {
+      recipes.set(id, recipe);
+    }
   }
 
   for (const [id, recipe] of reactionRecipes(filtered.reactions, filtered.reagents)) {

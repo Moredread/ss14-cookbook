@@ -351,7 +351,8 @@ class SpriteCache {
         try {
           image = await this.tryReadPng(fullPath);
         } catch (e) {
-          throw new Error(`Error reading ${fullPath}: ${e}`, { cause: e });
+          console.warn(`Error reading ${fullPath}: ${e}`);
+          image = new Jimp({ width: SpriteSize, height: SpriteSize });
         }
       } else {
         console.error(
@@ -431,16 +432,18 @@ class SpriteCache {
 
     if (!attribution) {
       const metaPath = resolve(this.dir, joinPath(path, 'meta.json'));
-      const metaRaw = readFileTextWithoutTheStupidBOM(metaPath);
       let meta: any;
       try {
+        const metaRaw = readFileTextWithoutTheStupidBOM(metaPath);
         meta = JSON.parse(metaRaw);
       } catch (e) {
         meta = {
           license: '(invalid sprite metadata)',
           copyright: '(invalid sprite metadata)',
         };
-        console.error(`${metaPath}: Error parsing attributions:`, e);
+        if ((e as any)?.code !== 'ENOENT') {
+          console.error(`${metaPath}: Error parsing attributions:`, e);
+        }
       }
 
       let copyright = typeof meta.copyright === 'string'

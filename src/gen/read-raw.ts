@@ -6,6 +6,9 @@ import {
   ConstructionGraphId,
   ConstructionGraphMap,
   ConstructionGraphPrototype,
+  ConstructionId,
+  ConstructionMap,
+  ConstructionPrototype,
   EntityId,
   EntityMap,
   EntityPrototype,
@@ -32,6 +35,7 @@ export interface RawGameData {
   readonly reagents: ReagentMap;
   readonly stacks: StackMap;
   readonly constructionGraphs: ConstructionGraphMap;
+  readonly constructions: ConstructionMap;
   readonly metamorphRecipes: MetamorphRecipeMap;
   readonly foodSequenceElements: FoodSequenceElementMap;
   readonly recipes: readonly MicrowaveMealRecipe[];
@@ -78,6 +82,7 @@ export const readRawGameData = (yamlPaths: string[]): RawGameData => {
   const reagents = new Map<ReagentId, ReagentPrototype>();
   const stacks = new Map<StackId, StackPrototype>();
   const constructionGraphs = new Map<ConstructionGraphId, ConstructionGraphPrototype>();
+  const constructions = new Map<ConstructionId, ConstructionPrototype>();
   const metamorphRecipes = new Map<MetamorphRecipeId, MetamorphRecipePrototype>();
   const foodSequenceElements = new Map<FoodSequenceElementId, FoodSequenceElementPrototype>();
   const recipes: MicrowaveMealRecipe[] = [];
@@ -120,6 +125,9 @@ export const readRawGameData = (yamlPaths: string[]): RawGameData => {
         case 'stack':
           stacks.set(node.id, node);
           break;
+        case 'construction':
+          constructions.set(node.id, node);
+          break;
         case 'constructionGraph':
           constructionGraphs.set(node.id, node);
           break;
@@ -154,6 +162,7 @@ export const readRawGameData = (yamlPaths: string[]): RawGameData => {
     reagents,
     stacks,
     constructionGraphs,
+    constructions,
     metamorphRecipes,
     foodSequenceElements,
     recipes,

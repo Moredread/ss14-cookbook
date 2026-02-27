@@ -79,6 +79,10 @@ export const RecipeMethod = memo(({
           text = <span>Mix</span>;
           spriteAlt = 'beaker';
           break;
+        case null:
+          text = <span>Craft</span>;
+          spriteAlt = 'craft';
+          break;
         default:
           return null;
       }

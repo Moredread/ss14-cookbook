@@ -10,6 +10,7 @@ import {
   MixStep,
   SimpleInteractionStep,
   StartStep,
+  ToolStep,
 } from '../types';
 import { useGameData } from './context';
 import {
@@ -64,6 +65,8 @@ const Step = ({ step, visible }: StepProps): ReactElement => {
     case 'stir':
     case 'shake':
       return <SimpleStep step={step}/>;
+    case 'tool':
+      return <ToolStepView step={step}/>;
     case 'alsoMakes':
       return <AlsoMakesStep step={step}/>;
   }
@@ -243,6 +246,20 @@ const SimpleStepText: Readonly<Record<SimpleInteractionStep['type'], string>> = 
   roll: 'Roll it',
   shake: 'Shake it',
   stir: 'Stir it',
+};
+
+interface ToolStepViewProps {
+  step: ToolStep;
+}
+
+const ToolStepView = ({ step }: ToolStepViewProps): ReactElement => {
+  const { methodSprites } = useGameData();
+  return (
+    <li className='recipe_step recipe_step--simple'>
+      <RawSprite position={methodSprites.construct!} alt=''/>
+      Use {step.tool}
+    </li>
+  );
 };
 
 interface AlsoMakesStepProps {
