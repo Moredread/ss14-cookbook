@@ -75,6 +75,7 @@ export const saveData = async (
         name: reagent.name,
         color: reagent.color,
         sources: d.resolved.reagentSources.get(id) ?? [],
+        ...(reagent.metabolisms ? { metabolisms: reagent.metabolisms } : {}),
       });
     }
 

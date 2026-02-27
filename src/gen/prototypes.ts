@@ -64,6 +64,7 @@ export interface ReagentPrototype extends PlainObject {
   readonly name: string; // Fluent key :(
   readonly color?: string;
   readonly group?: string;
+  readonly metabolisms?: Readonly<Record<string, PlainObject>>;
 }
 
 export interface MicrowaveMealRecipe extends PlainObject {

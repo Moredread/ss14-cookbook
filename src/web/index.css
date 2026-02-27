@@ -2163,6 +2163,81 @@ select {
     border-bottom-style: solid;
   }
 
+.reagent-effects_trigger {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 3px;
+  background-color: var(--recipe-bg-catalyst);
+  color: var(--fg-subtle);
+  cursor: help;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+  .reagent-effects_trigger:hover {
+    color: var(--fg);
+  }
+
+.reagent-effects_group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+  .reagent-effects_group + .reagent-effects_group {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--fg-subtle);
+  }
+
+.reagent-effects_group-name {
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+
+.reagent-effects_rate {
+  font-size: 0.8rem;
+  color: var(--fg-subtle);
+}
+
+.reagent-effects_metabolites {
+  font-size: 0.85rem;
+}
+
+.reagent-effects_metabolite {
+  font-weight: 600;
+}
+
+.reagent-effects_list {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+  .reagent-effects_list > li {
+    padding: 1px 0;
+  }
+
+  .reagent-effects_list > li::before {
+    content: '\2022 ';
+    color: var(--fg-subtle);
+  }
+
+.reagent-effects_prob {
+  color: var(--fg-subtle);
+}
+
+.reagent-effects_conditions {
+  color: var(--fg-subtle);
+  font-size: 0.8rem;
+}
+
 .notice {
   box-sizing: border-box;
   display: flex;
@@ -2275,6 +2350,16 @@ select {
     background-color: var(--tooltip-bg);
     color: var(--tooltip-fg);
     box-shadow: 0 3px 7px var(--shadow-color);
+  }
+
+  .popup--effects {
+    padding: 8px 12px;
+    max-width: 360px;
+    border-radius: 7px;
+    background-color: var(--tooltip-bg);
+    color: var(--tooltip-fg);
+    box-shadow: 0 3px 7px var(--shadow-color);
+    font-size: 0.85rem;
   }
 
     .popup_entity {

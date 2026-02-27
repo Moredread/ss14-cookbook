@@ -1,6 +1,9 @@
-import { ReactElement, memo } from 'react';
-import { ReagentIngredient as ReagentIngredientData } from '../types';
+import { ReactElement, Ref, cloneElement, memo } from 'react';
+import { createPortal } from 'react-dom';
+import { ReagentIngredient as ReagentIngredientData, Reagent } from '../types';
 import { useGameData } from './context';
+import { getPopupRoot, usePopupTrigger } from './popup-impl';
+import { ReagentEffects } from './reagent-effects';
 import { RecipePopup } from './recipe-popup';
 import { EntitySprite, ReagentSprite } from './sprites';
 import { Tooltip } from './tooltip';
@@ -115,7 +118,7 @@ export const ReagentIngredient = ({
           {' '}
           <Tooltip
             text={
-              `You won’t lose any of the ${
+              `You won't lose any of the ${
                 reagent.name
               } when making this recipe.`
             }
@@ -125,7 +128,38 @@ export const ReagentIngredient = ({
             </span>
           </Tooltip>
         </>}
+        {reagent.metabolisms && (
+          <ReagentEffectsPopup reagent={reagent}>
+            <span className='reagent-effects_trigger'>fx</span>
+          </ReagentEffectsPopup>
+        )}
       </span>
     </span>
   );
+};
+
+interface ReagentEffectsPopupProps {
+  reagent: Reagent;
+  children: ReactElement<{ ref?: Ref<HTMLElement> }>;
+}
+
+const ReagentEffectsPopup = ({
+  reagent,
+  children,
+}: ReagentEffectsPopupProps): ReactElement => {
+  const { visible, popupRef, parentRef } = usePopupTrigger<HTMLDivElement>(
+    'below'
+  );
+
+  const childWithRef = cloneElement(children, { ref: parentRef });
+
+  return <>
+    {childWithRef}
+    {visible && createPortal(
+      <div className='popup popup--effects' ref={popupRef}>
+        <ReagentEffects metabolisms={reagent.metabolisms!}/>
+      </div>,
+      getPopupRoot()
+    )}
+  </>;
 };

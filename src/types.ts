@@ -77,6 +77,37 @@ export interface Reagent {
   readonly name: string;
   readonly color: string;
   readonly sources: readonly string[];
+  readonly metabolisms?: ReagentMetabolisms;
+}
+
+export type ReagentMetabolisms = Readonly<Record<string, MetabolismGroup>>;
+
+export interface MetabolismGroup {
+  readonly metabolismRate?: number;
+  readonly metabolites?: Readonly<Record<string, number>>;
+  readonly effects?: readonly ReagentEffect[];
+}
+
+export interface ReagentEffect {
+  readonly type: string;
+  readonly probability?: number;
+  readonly conditions?: readonly ReagentEffectCondition[];
+  /**
+   * Original YAML `type` field, when it collides with our `type` key.
+   * Used by e.g. `ModifyStatusEffect` (`"Add"` / `"Remove"`).
+   */
+  readonly typeValue?: unknown;
+  readonly [key: string]: unknown;
+}
+
+export interface ReagentEffectCondition {
+  readonly type: string;
+  /**
+   * Original YAML `type` field, when it collides with our `type` key.
+   * Used by `MetabolizerTypeCondition` (`["Dwarf"]`, etc.).
+   */
+  readonly typeValue?: unknown;
+  readonly [key: string]: unknown;
 }
 
 export type CookingMethod =

@@ -1,7 +1,13 @@
 import { FluentBundle, FluentResource } from '@fluent/bundle';
 import { globSync } from 'glob';
 import { resolve } from 'node:path';
-import { CookingMethod } from '../types';
+import {
+  CookingMethod,
+  MetabolismGroup,
+  ReagentEffect,
+  ReagentEffectCondition,
+  ReagentMetabolisms,
+} from '../types';
 import {
   DefaultCookTime,
   DefaultRecipeGroup,
@@ -10,6 +16,7 @@ import {
 import { ConstructRecipeBuilder } from './construct-recipe-builder';
 import { PrunedGameData } from './filter-relevant';
 import { readFileTextWithoutTheStupidBOM } from './helpers';
+import { isPlainObject } from './types';
 import {
   EntityId,
   MicrowaveMealRecipe,
@@ -94,9 +101,11 @@ export const resolvePrototypes = (
     const name = nameMessage?.value
       ? fluentBundle.formatPattern(nameMessage.value)
       : reagent.id;
+    const metabolisms = transformMetabolisms(reagent.metabolisms);
     reagents.set(reagent.id, {
       name,
       color: reagent.color ?? '#ffffff',
+      ...(metabolisms ? { metabolisms } : {}),
     });
   }
 
@@ -237,3 +246,75 @@ function* reactionRecipes(
     }
   }
 }
+
+const transformMetabolisms = (
+  raw: Readonly<Record<string, unknown>> | undefined
+): ReagentMetabolisms | undefined => {
+  if (!raw) return undefined;
+
+  const result: Record<string, MetabolismGroup> = {};
+  let hasAny = false;
+
+  for (const [groupName, groupData] of Object.entries(raw)) {
+    if (!isPlainObject(groupData)) continue;
+
+    const group: MetabolismGroup = {
+      ...(typeof groupData.metabolismRate === 'number'
+        ? { metabolismRate: groupData.metabolismRate }
+        : {}),
+      ...(isPlainObject(groupData.metabolites)
+        ? { metabolites: groupData.metabolites as Record<string, number> }
+        : {}),
+      ...(Array.isArray(groupData.effects)
+        ? { effects: transformEffects(groupData.effects) }
+        : {}),
+    };
+    result[groupName] = group;
+    hasAny = true;
+  }
+
+  return hasAny ? result : undefined;
+};
+
+/**
+ * Copy all YAML fields from a `!type:`-tagged object, renaming `!type` to
+ * `type`. If the original object also has a `type` field (e.g.
+ * MetabolizerTypeCondition.type or ModifyStatusEffect.type), it's stored
+ * under `typeValue` to avoid a collision with the C# class name.
+ */
+const renameTypedObject = (obj: Record<string, unknown>): Record<string, unknown> => {
+  const typeName = obj['!type'];
+  if (typeof typeName !== 'string') return obj;
+
+  const out: Record<string, unknown> = { type: typeName };
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === '!type') continue;
+    out[key === 'type' ? 'typeValue' : key] = value;
+  }
+  return out;
+};
+
+const transformEffects = (effects: unknown[]): ReagentEffect[] => {
+  const result: ReagentEffect[] = [];
+  for (const effect of effects) {
+    if (!isPlainObject(effect)) continue;
+    if (typeof effect['!type'] !== 'string') continue;
+
+    const transformed = renameTypedObject(effect);
+    if (Array.isArray(transformed.conditions)) {
+      transformed.conditions = transformConditions(transformed.conditions);
+    }
+    result.push(transformed as ReagentEffect);
+  }
+  return result;
+};
+
+const transformConditions = (conditions: unknown[]): ReagentEffectCondition[] => {
+  const result: ReagentEffectCondition[] = [];
+  for (const condition of conditions) {
+    if (!isPlainObject(condition)) continue;
+    if (typeof condition['!type'] !== 'string') continue;
+    result.push(renameTypedObject(condition) as ReagentEffectCondition);
+  }
+  return result;
+};

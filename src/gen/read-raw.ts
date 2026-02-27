@@ -1,6 +1,6 @@
 import { globSync } from 'glob';
 import { resolve } from 'node:path';
-import { CollectionTag, Scalar, YAMLMap, parse } from 'yaml';
+import { CollectionTag, ScalarTag, Scalar, YAMLMap, parse } from 'yaml';
 import { readFileTextWithoutTheStupidBOM } from './helpers';
 import {
   ConstructionGraphId,
@@ -47,7 +47,7 @@ export interface RawGameData {
 // hence we have to specify all *relevant* type tags ourselves.
 // We implement `!type:T` tags by assigning 'T' to the object's '!type' key.
 
-const typeTag = (name: string): CollectionTag => ({
+const typeMapTag = (name: string): CollectionTag => ({
   tag: `!type:${name}`,
   collection: 'map',
   identify: () => false,
@@ -62,16 +62,43 @@ const typeTag = (name: string): CollectionTag => ({
   },
 });
 
-const customTags: CollectionTag[] = [
-  // Add more tags here as necessary
-  typeTag('CreateEntityReactionEffect'),
-  typeTag('SpawnEntity'),
-  typeTag('SequenceLength'),
-  typeTag('LastElementHasTags'),
-  typeTag('ElementHasTags'),
-  typeTag('FoodHasReagent'),
-  typeTag('IngredientsWithTags'),
-];
+// Handles `!type:Foo` when used with no fields (parsed as a scalar, not a map).
+const typeScalarTag = (name: string): ScalarTag => ({
+  tag: `!type:${name}`,
+  identify: () => false,
+  resolve: () => ({ '!type': name }),
+});
+
+type CustomTag = CollectionTag | ScalarTag;
+
+const mapTagCache = new Map<string, CollectionTag>();
+const scalarTagCache = new Map<string, ScalarTag>();
+
+const getOrCreateTags = (name: string): [CollectionTag, ScalarTag] => {
+  let mapTag = mapTagCache.get(name);
+  if (!mapTag) {
+    mapTag = typeMapTag(name);
+    mapTagCache.set(name, mapTag);
+  }
+  let scalarTag = scalarTagCache.get(name);
+  if (!scalarTag) {
+    scalarTag = typeScalarTag(name);
+    scalarTagCache.set(name, scalarTag);
+  }
+  return [mapTag, scalarTag];
+};
+
+const discoverTags = (source: string): CustomTag[] => {
+  const tags: CustomTag[] = [];
+  const seen = new Set<string>();
+  for (const match of source.matchAll(/!type:(\w+)/g)) {
+    if (!seen.has(match[1])) {
+      seen.add(match[1]);
+      tags.push(...getOrCreateTags(match[1]));
+    }
+  }
+  return tags;
+};
 
 export const findResourceFiles = (prototypeDir: string): string[] =>
   globSync('**/*.yml', { cwd: prototypeDir })
@@ -97,9 +124,7 @@ export const readRawGameData = (yamlPaths: string[]): RawGameData => {
     }
 
     const doc = parse(source, {
-      // I don't care about unresolved tags
-      logLevel: 'silent',
-      customTags,
+      customTags: discoverTags(source),
     });
 
     if (!Array.isArray(doc)) {
@@ -154,6 +179,18 @@ export const readRawGameData = (yamlPaths: string[]): RawGameData => {
     }
     if (current.group) {
       (reagent as any).group = current.group;
+    }
+  }
+
+  // Resolve inherited metabolisms through parent chains
+  for (const reagent of reagents.values()) {
+    if (reagent.metabolisms || !reagent.parent) continue;
+    let current: ReagentPrototype | undefined = reagent;
+    while (current && !current.metabolisms && current.parent) {
+      current = reagents.get(current.parent);
+    }
+    if (current?.metabolisms) {
+      (reagent as any).metabolisms = current.metabolisms;
     }
   }
 

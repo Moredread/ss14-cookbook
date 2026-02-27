@@ -2,6 +2,7 @@ import {
   ConstructionStep,
   ConstructVerb,
   ReagentIngredient,
+  ReagentMetabolisms,
   Recipe,
 } from '../types';
 import { EntitySpawnEntry, Solution } from './components';
@@ -195,6 +196,7 @@ export interface ResolvedReagent {
   // The ID is in the owning collection.
   readonly name: string;
   readonly color: string;
+  readonly metabolisms?: ReagentMetabolisms;
 }
 
 export type ResolvedRecipe =
