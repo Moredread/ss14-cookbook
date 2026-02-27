@@ -351,6 +351,7 @@ const resizeRelatedRecipesList = (elem: HTMLDivElement): void => {
   }
 
   list.style.removeProperty('--list-height');
+  list.style.removeProperty('--list-width');
 
   const rects = Array.from(list.children, child => {
     const rect = child.getBoundingClientRect();
@@ -379,6 +380,17 @@ const resizeRelatedRecipesList = (elem: HTMLDivElement): void => {
   }
 
   list.style.setProperty('--list-height', `${maxHeight}px`);
+
+  // Fix Firefox: width: max-content doesn't account for column wrapping in
+  // Firefox. After setting the height (which triggers column wrapping), measure
+  // the actual laid-out width from child positions and set it explicitly.
+  const widthRects = Array.from(list.children, child => {
+    const rect = child.getBoundingClientRect();
+    return rect.right + RelatedRecipeMargin;
+  });
+  const listLeft = list.getBoundingClientRect().left + RelatedRecipeMargin;
+  const contentWidth = Math.ceil(Math.max(...widthRects) - listLeft);
+  list.style.setProperty('--list-width', `${contentWidth}px`);
 };
 
 const tryBalanceColumns = (
