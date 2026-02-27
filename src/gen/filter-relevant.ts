@@ -125,7 +125,7 @@ export const filterRelevantPrototypes = (
     const reagentResult = getReagentResult(reaction);
     if (!reagentResult) continue;
     const reagent = raw.reagents.get(reagentResult[0]);
-    if (reagent?.group === 'Drinks') {
+    if (isDrinkGroup(reagent?.group)) {
       usedReagents.add(reagentResult[0]);
     }
   }
@@ -828,9 +828,11 @@ const tryAddReaction = (
   return hasNewReagents;
 };
 
+const isDrinkGroup = (group: string | undefined): boolean =>
+  group === 'Drinks' || group === 'NonAlcoholicDrinks' || group === 'AlcoholicDrinks';
+
 const isFoodRelatedReagent = (reagent: ReagentPrototype): boolean =>
-  reagent.group === 'Foods' ||
-  reagent.group === 'Drinks';
+  reagent.group === 'Foods' || isDrinkGroup(reagent.group);
 
 function* traverseConstructionGraph(
   entityId: EntityId,
