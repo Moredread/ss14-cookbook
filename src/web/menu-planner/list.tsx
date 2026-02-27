@@ -156,8 +156,8 @@ const Item = memo(({ menu }: ItemProps): ReactElement => {
       .map(id => {
         const recipe = recipeMap.get(id)!;
         const name = recipe.reagentResult
-          ? reagentMap.get(recipe.reagentResult)!.name
-          : entityMap.get(recipe.solidResult!)!.name;
+          ? (reagentMap.get(recipe.reagentResult)?.name ?? recipe.reagentResult)
+          : (entityMap.get(recipe.solidResult!)?.name ?? recipe.solidResult!);
         return name;
       });
 

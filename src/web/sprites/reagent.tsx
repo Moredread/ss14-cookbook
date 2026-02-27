@@ -15,7 +15,12 @@ export const ReagentSprite = memo(({
     beakerFill,
   } = useGameData();
 
-  const reagent = reagentMap.get(id)!;
+  const reagent = reagentMap.get(id);
+  if (!reagent) {
+    return (
+      <span className='sprite sprite--missing' role='img' aria-label={id}/>
+    );
+  }
 
   const maskPosition = `-${beakerFill[0]}px -${beakerFill[1]}px`;
 

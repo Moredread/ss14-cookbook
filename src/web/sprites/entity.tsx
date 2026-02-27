@@ -8,7 +8,12 @@ export interface EntitySpriteProps {
 export const EntitySprite = memo(({ id }: EntitySpriteProps): ReactElement => {
   const { entityMap } = useGameData();
 
-  const entity = entityMap.get(id)!;
+  const entity = entityMap.get(id);
+  if (!entity) {
+    return (
+      <span className='sprite sprite--missing' role='img' aria-label={id}/>
+    );
+  }
 
   return (
     <span

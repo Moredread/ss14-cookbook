@@ -68,6 +68,9 @@ export interface SearchableRecipeData {
   readonly microwaveRecipeTypes:
     Readonly<Record<string, MicrowaveRecipeType>> | null;
 
+  /** Entity/reagent IDs referenced by recipes but not found in game data. */
+  readonly missingReferences: readonly string[];
+
   readonly specialTraits: readonly Trait[];
   /**
    * Mapping from trait mask to rendered marker, populated by the RecipeTraits

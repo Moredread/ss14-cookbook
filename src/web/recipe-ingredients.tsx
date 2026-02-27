@@ -62,7 +62,8 @@ export const SolidIngredient = ({
   qty,
 }: SolidIngredientProps): ReactElement => {
   const { entityMap, recipesBySolidResult } = useGameData();
-  const entity = entityMap.get(id)!;
+  const entity = entityMap.get(id);
+  const name = entity?.name ?? id;
   const relatedRecipes = recipesBySolidResult.get(id);
 
   return (
@@ -73,10 +74,10 @@ export const SolidIngredient = ({
         {relatedRecipes ? (
           <RecipePopup id={relatedRecipes}>
             <span className='more-info'>
-              {entity.name}
+              {name}
             </span>
           </RecipePopup>
-        ) : entity.name}
+        ) : name}
       </span>
     </span>
   );
@@ -95,7 +96,8 @@ export const ReagentIngredient = ({
   catalyst = false,
 }: ReagentIngredientProps): ReactElement => {
   const { reagentMap, recipesByReagentResult } = useGameData();
-  const reagent = reagentMap.get(id)!;
+  const reagent = reagentMap.get(id);
+  const name = reagent?.name ?? id;
   const relatedRecipes = recipesByReagentResult.get(id);
 
   const formattedAmount = typeof amount === 'number'
@@ -110,16 +112,16 @@ export const ReagentIngredient = ({
         {relatedRecipes ? (
           <RecipePopup id={relatedRecipes}>
             <span className='more-info'>
-              {reagent.name}
+              {name}
             </span>
           </RecipePopup>
-        ) : reagent.name}
+        ) : name}
         {catalyst && <>
           {' '}
           <Tooltip
             text={
-              `You won't lose any of the ${
-                reagent.name
+              `You won’t lose any of the ${
+                name
               } when making this recipe.`
             }
           >
@@ -128,7 +130,7 @@ export const ReagentIngredient = ({
             </span>
           </Tooltip>
         </>}
-        {reagent.metabolisms && (
+        {reagent?.metabolisms && (
           <ReagentEffectsPopup reagent={reagent}>
             <span className='reagent-effects_trigger'>fx</span>
           </ReagentEffectsPopup>

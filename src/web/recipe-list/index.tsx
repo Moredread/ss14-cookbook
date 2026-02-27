@@ -12,6 +12,7 @@ import { MicrowaveRecipeType, Recipe as RecipeData } from '../../types';
 import { useGameData } from '../context';
 import { Dropdown, DropdownExtraItem, DropdownOption } from '../dropdown';
 import { useIsFavorite } from '../favorites';
+import { Notice } from '../notices';
 import { joinListNatural } from '../helpers';
 import {
   ClearFilterIcon,
@@ -61,6 +62,7 @@ export const RecipeList = memo((): ReactElement => {
     entityMap,
     reagentMap,
     sortingIdRewrites,
+    missingReferences,
   } = useGameData();
 
   const [search, setSearch] = useState('');
@@ -154,6 +156,11 @@ export const RecipeList = memo((): ReactElement => {
 
   return (
     <main hidden={!open}>
+      {missingReferences.length > 0 && (
+        <Notice kind='warning'>
+          Some recipes reference items not found in game data. These may display incorrectly.
+        </Notice>
+      )}
       <div className='recipe-search'>
         <InputGroup iconBefore={<SearchIcon/>}>
           <input

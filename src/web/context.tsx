@@ -34,6 +34,8 @@ export const GameDataProvider = memo(({
       reagentMap.set(reagent.id, reagent);
     }
 
+    const missingRefs = new Set<string>();
+
     const recipeMap = new Map<string, Recipe>();
     const recipesBySolidResult = new Map<string, string[]>();
     const recipesByReagentResult = new Map<string, string[]>();
@@ -46,10 +48,24 @@ export const GameDataProvider = memo(({
       let name: string | null = null;
       if (recipe.solidResult) {
         appendAtKey(recipesBySolidResult, recipe.solidResult, recipe.id);
-        name = entityMap.get(recipe.solidResult)!.name;
+        const entity = entityMap.get(recipe.solidResult);
+        if (entity) {
+          name = entity.name;
+        } else {
+          console.warn(`Recipe ${recipe.id}: missing entity ${recipe.solidResult}`);
+          missingRefs.add(recipe.solidResult);
+          name = recipe.solidResult;
+        }
       } else if (recipe.reagentResult) {
         appendAtKey(recipesByReagentResult, recipe.reagentResult, recipe.id);
-        name = reagentMap.get(recipe.reagentResult)!.name;
+        const reagent = reagentMap.get(recipe.reagentResult);
+        if (reagent) {
+          name = reagent.name;
+        } else {
+          console.warn(`Recipe ${recipe.id}: missing reagent ${recipe.reagentResult}`);
+          missingRefs.add(recipe.reagentResult);
+          name = recipe.reagentResult;
+        }
       }
       if (name) {
         searchableRecipeNames.set(recipe.id, name.toLowerCase());
@@ -98,6 +114,8 @@ export const GameDataProvider = memo(({
       methodSprites: raw.methodSprites,
       beakerFill: raw.beakerFill,
       microwaveRecipeTypes: raw.microwaveRecipeTypes,
+
+      missingReferences: Array.from(missingRefs),
 
       specialTraits: raw.specialTraits,
       renderedTraitCache: new Map(),
