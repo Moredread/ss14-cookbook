@@ -66,6 +66,7 @@ jobs:
             'COOKBOOK_REPO_URL=https://github.com/Moredread/ss14-cookbook' \
             'COOKBOOK_TRUSTED_HOSTS=' \
             'COOKBOOK_CANONICAL_URL=https://moredread.github.io/ss14-cookbook' \
+            "COOKBOOK_COMMIT=$GITHUB_SHA" \
             > .env
 
       - name: Build frontend

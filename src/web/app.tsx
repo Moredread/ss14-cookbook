@@ -88,6 +88,7 @@ export const App = ({ forks }: Props): ReactElement => {
 
   const meta = forkData.meta;
   const commitLink = GitHubCommitUrl(meta.repo, meta.commit);
+  const cookbookCommit: string | null = COOKBOOK_COMMIT;
 
   return (
     <UrlProvider>
@@ -124,6 +125,12 @@ export const App = ({ forks }: Props): ReactElement => {
               <PrivacyPolicyLink/>
               {' • '}
               <a href={REPO_URL} target='_blank' rel='noopener'>Source code</a>
+              {cookbookCommit && <>
+                {' • '}
+                <a href={`${REPO_URL}/commit/${cookbookCommit}`} target='_blank' rel='noopener'>
+                  {cookbookCommit.slice(0, 9)}
+                </a>
+              </>}
             </p>
           </footer>
           <CanonicalRedirect/>
