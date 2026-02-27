@@ -1,3 +1,144 @@
+/* React Flow base styles (subset of @xyflow/react/dist/base.css) */
+.react-flow {
+  direction: ltr;
+  --xy-edge-stroke-default: #b1b1b7;
+  --xy-edge-stroke-width-default: 1;
+  --xy-edge-stroke-selected-default: #555;
+  --xy-connectionline-stroke-default: #b1b1b7;
+  --xy-connectionline-stroke-width-default: 1;
+  --xy-attribution-background-color-default: rgba(255, 255, 255, 0.5);
+  --xy-background-color-default: transparent;
+  --xy-node-border-default: 1px solid #bbb;
+  --xy-node-border-selected-default: 1px solid #555;
+  --xy-handle-background-color-default: #333;
+  --xy-selection-background-color-default: rgba(150, 150, 180, 0.1);
+  --xy-selection-border-default: 1px dotted rgba(155, 155, 155, 0.8);
+  background-color: var(--xy-background-color, var(--xy-background-color-default));
+}
+.react-flow__container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+.react-flow__pane {
+  z-index: 1;
+  &.draggable { cursor: grab; }
+  &.dragging { cursor: grabbing; }
+}
+.react-flow__viewport {
+  transform-origin: 0 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.react-flow__renderer { z-index: 4; }
+.react-flow__selection { z-index: 6; }
+.react-flow__edge-path {
+  stroke: var(--xy-edge-stroke, var(--xy-edge-stroke-default));
+  stroke-width: var(--xy-edge-stroke-width, var(--xy-edge-stroke-width-default));
+  fill: none;
+}
+.react-flow__connection-path {
+  stroke: var(--xy-connectionline-stroke, var(--xy-connectionline-stroke-default));
+  stroke-width: var(--xy-connectionline-stroke-width, var(--xy-connectionline-stroke-width-default));
+  fill: none;
+}
+.react-flow .react-flow__edges {
+  position: absolute;
+  & svg {
+    overflow: visible;
+    position: absolute;
+    pointer-events: none;
+  }
+}
+.react-flow__edge {
+  pointer-events: visibleStroke;
+  &.animated path {
+    stroke-dasharray: 5;
+    animation: dashdraw 0.5s linear infinite;
+  }
+  &.inactive { pointer-events: none; }
+  &.selected, &:focus, &:focus-visible { outline: none; }
+  &.selected .react-flow__edge-path,
+  &.selectable:focus .react-flow__edge-path,
+  &.selectable:focus-visible .react-flow__edge-path {
+    stroke: var(--xy-edge-stroke-selected, var(--xy-edge-stroke-selected-default));
+  }
+}
+.react-flow__edge-textwrapper { pointer-events: all; }
+.react-flow__edge .react-flow__edge-text {
+  pointer-events: none;
+  user-select: none;
+}
+.react-flow__arrowhead polyline {
+  stroke: var(--xy-edge-stroke, var(--xy-edge-stroke-default));
+  &.arrowclosed {
+    fill: var(--xy-edge-stroke, var(--xy-edge-stroke-default));
+  }
+}
+.react-flow__connection { pointer-events: none; }
+svg.react-flow__connectionline {
+  z-index: 1001;
+  overflow: visible;
+  position: absolute;
+}
+.react-flow__nodes {
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+.react-flow__node {
+  position: absolute;
+  user-select: none;
+  pointer-events: all;
+  transform-origin: 0 0;
+  box-sizing: border-box;
+  cursor: default;
+  &.draggable { cursor: grab; pointer-events: all; }
+  &.draggable.dragging { cursor: grabbing; }
+}
+.react-flow__handle {
+  position: absolute;
+  pointer-events: none;
+  min-width: 5px;
+  min-height: 5px;
+  background-color: var(--xy-handle-background-color, var(--xy-handle-background-color-default));
+  &.connectingfrom { pointer-events: all; }
+  &.connectionindicator { pointer-events: all; cursor: crosshair; }
+}
+.react-flow__handle-bottom { top: auto; left: 50%; bottom: 0; transform: translate(-50%, 50%); }
+.react-flow__handle-top { top: 0; left: 50%; transform: translate(-50%, -50%); }
+.react-flow__handle-left { top: 50%; left: 0; transform: translate(-50%, -50%); }
+.react-flow__handle-right { top: 50%; right: 0; transform: translate(50%, -50%); }
+.react-flow__edgelabel-renderer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+  left: 0;
+  top: 0;
+}
+.react-flow__viewport-portal {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  user-select: none;
+}
+.react-flow__attribution {
+  font-size: 10px;
+  background: var(--xy-attribution-background-color, var(--xy-attribution-background-color-default));
+  padding: 2px 3px;
+  margin: 0;
+  & a { text-decoration: none; color: #999; }
+}
+@keyframes dashdraw {
+  from { stroke-dashoffset: 10; }
+}
+/* End React Flow base styles */
+
 :root {
   font-family: 'Noto Sans', sans-serif;
   font-size: 14px;
@@ -1339,7 +1480,7 @@ select {
   box-sizing: border-box;
   width: 100vw;
   height: 100vh;
-  overflow: auto;
+  overflow: hidden;
   background-color: var(--bg-level-0);
   color: var(--fg);
 }
@@ -1353,145 +1494,10 @@ select {
     max-width: 400px;
   }
 
-  .explorer_main > .recipe {
-    outline: 2px solid var(--explorer-line);
-    transition: outline-color 175ms ease-in-out;
-  }
-
-  @media (max-width: 999px) {
-    .explorer {
-      padding: 16px 8px;
-    }
-
+  @media (max-width: 599px) {
     .explorer_close {
       display: none;
     }
-
-    .explorer_main {
-      display: grid;
-      gap: 8px 16px;
-      grid-template-rows: auto auto 1fr;
-      grid-template-columns: 1fr 1fr;
-      height: 100%;
-    }
-
-      .explorer_main > .recipe {
-        justify-self: center;
-        grid-row: 1;
-        grid-column: 1 / span 2;
-      }
-
-    .explorer_arrow {
-      grid-row: 2;
-      width: 100%;
-      width: 125px;
-      margin-block: 8px;
-      text-align: center;
-    }
-
-      .explorer_arrow--before {
-        grid-column: 1;
-        justify-self: flex-end;
-      }
-
-      .explorer_arrow--after {
-        grid-column: 2;
-        justify-self: flex-start;
-      }
-
-      .explorer_arrow-label {
-        position: relative;
-        cursor: default;
-      }
-
-        .explorer_arrow-label::before {
-          content: '';
-          position: absolute;
-          top: calc(100% + 2px);
-          left: 50%;
-          width: 60px;
-          border-top: 2px solid var(--explorer-line);
-          transform: translateX(-50%);
-          opacity: 0.3;
-
-          transition-duration: 150ms;
-          transition-property: width, opacity;
-          transition-timing-function: ease;
-          transition-delay: 125ms;
-        }
-
-          .explorer_arrow:hover > .explorer_arrow-label::before {
-            width: 80px;
-            opacity: 0.8;
-            transition-delay: 0s;
-          }
-
-          .explorer_arrow--current.explorer_arrow--current > .explorer_arrow-label::before {
-            width: 110px;
-            opacity: 1;
-            transition-delay: 0s;
-          }
-
-        .explorer_arrow-label::after {
-          content: '';
-          position: absolute;
-          top: calc(100% + 10px);
-          left: calc(50% - 1px);
-          height: 0;
-          border-left: 2px solid var(--explorer-line);
-          opacity: 0.3;
-
-          transition-duration: 100ms;
-          transition-property: top, height, opacity;
-          transition-timing-function: ease;
-          transition-delay: 0s;
-        }
-
-          .explorer_arrow:hover > .explorer_arrow-label::after {
-            opacity: 0.8; /* better transition from hovered state */
-          }
-
-          .explorer_arrow--current.explorer_arrow--current > .explorer_arrow-label::after {
-            top: calc(100% + 4px);
-            height: 12px;
-            opacity: 1;
-            transition-delay: 175ms;
-          }
-
-    .explorer_list {
-      display: none;
-      grid-row: 3;
-      grid-column: 1 / span 2;
-      justify-self: center;
-      flex-direction: column;
-      padding: 10px 10px 16px;
-      position: relative;
-    }
-
-      .explorer_list--current {
-        display: flex;
-      }
-
-      .explorer_list::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 16px;
-        border: 2px solid var(--explorer-line);
-        border-bottom-style: none;
-        border-top-right-radius: 13px;
-        border-top-left-radius: 13px;
-        pointer-events: none;
-      }
-
-      .explorer_list-inner {
-        flex: 1 1 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
   }
 
   @media (min-width: 600px) {
@@ -1503,6 +1509,7 @@ select {
       right: 8px;
       border-radius: 32px;
       box-shadow: var(--shadow-basic);
+      z-index: 10;
 
       --button-bg: var(--bg-level-1);
       --button-border: var(--button-bg);
@@ -1514,189 +1521,51 @@ select {
       }
   }
 
-  @media (min-width: 700px) and (max-width: 999px) {
-    .explorer_arrow {
-      width: 150px;
-    }
-
-    /* fucking specificity */
-
-    .explorer_arrow-label.explorer_arrow-label.explorer_arrow-label::before {
-      width: 110px;
-      opacity: 1;
-    }
-
-    .explorer_arrow-label.explorer_arrow-label.explorer_arrow-label::after {
-      top: calc(100% + 4px);
-      height: 12px;
-      opacity: 1;
-    }
-
-    .explorer_list {
-      display: flex;
-    }
-
-      .explorer_list--before {
-        grid-column: 1;
-        justify-self: flex-end;
-      }
-
-      .explorer_list--after {
-        grid-column: 2;
-        justify-self: flex-start;
-      }
+  /* React Flow graph container */
+  .explorer_graph {
+    width: 100%;
+    height: 100%;
   }
 
-  @media (min-width: 1000px) {
-    .explorer {
-      padding: 16px;
+    /* Hide default React Flow node styling */
+    .explorer_graph .react-flow__node {
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      width: auto;
+      font-size: inherit;
+      color: inherit;
     }
 
-    .explorer_main {
-      position: absolute;
-      left: calc(50% + var(--x));
-      top: calc(50% + var(--y));
-      transform: translate(-50%, -50%);
-      --x: 0px;
-      --y: 0px;
+    .explorer_graph .react-flow__node:hover {
+      box-shadow: none;
     }
 
-      .explorer_main--collapsed > .recipe {
-        outline-color: transparent;
-      }
-
-    .explorer_arrow {
-      position: absolute;
-      top: 50%;
-      width: 110px;
-      border-top: 2px solid var(--explorer-line);
-      transform: translateY(-50%);
-      transition: opacity 175ms ease-in-out;
+    .explorer_graph .react-flow__node.selected {
+      box-shadow: none;
     }
 
-      .explorer_arrow--before {
-        right: calc(100% + 2px);
-      }
-
-      .explorer_arrow--after {
-        left: calc(100% + 2px);
-      }
-
-      .explorer_main--collapsed .explorer_arrow {
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      .explorer_arrow::before {
-        content: '';
-        box-sizing: border-box;
-        position: absolute;
-        top: calc(50% - 1px);
-        left: 50%;
-        width: 16px;
-        height: 16px;
-        border-top: 2px solid var(--explorer-line);
-        border-right: 2px solid var(--explorer-line);
-        transform: translate(-50%, -50%) rotate(45deg);
-        box-shadow: 4px -4px 0 0 var(--bg-level-0);
-      }
-
-      .explorer_arrow-label {
-        position: absolute;
-        bottom: 12px;
-        left: 50%;
-        white-space: nowrap;
-        transform: translateX(-50%);
-      }
-
-    .explorer_list {
-      display: flex;
-      padding: 10px;
-      position: absolute;
-      top: 50%;
-      box-sizing: border-box;
-      max-height: calc(100vh - 48px);
-      transform: translateY(-50%);
-      transition: opacity 175ms ease-in-out;
-    }
-
-      .explorer_list--before {
-        right: calc(100% + 112px);
-      }
-
-      .explorer_list--after {
-        left: calc(100% + 112px);
-      }
-
-      .explorer_main--collapsed .explorer_list {
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      .explorer_list::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 16px;
-        border: 2px solid var(--explorer-line);
-        pointer-events: none;
-      }
-
-        .explorer_list--before::before {
-          right: 0;
-          border-left-style: none;
-          border-top-right-radius: 13px;
-          border-bottom-right-radius: 13px;
-        }
-
-        .explorer_list--after::before {
-          left: 0;
-          border-right-style: none;
-          border-top-left-radius: 13px;
-          border-bottom-left-radius: 13px;
-        }
-
-    /* Due to fiddliness around flex-wrap and absolute positioning, we have to
-     * put a margin on recipes in the .explorer_list instead of using gap.
-     * Otherwise `width: max-content` fails to take the gap into account when
-     * wrapping boxes, and the size gets all wonky.
-     *
-     * --list-width is set by JS to work around a Firefox bug where
-     * width: max-content doesn't account for column wrapping.
-     */
-    .explorer_list-inner {
-      flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
-      flex-wrap: wrap;
-      width: var(--list-width, max-content);
-      margin: -4px;
-      height: var(--list-height);
-      --list-height: auto;
-    }
-
-      .explorer_list-inner > .recipe,
-      .explorer_list-inner > .explorer_expandable {
-        margin: 4px;
-      }
-
-      .explorer_list-inner--has-expanded {
-        flex-wrap: nowrap;
-        width: auto;
-        height: auto;
-      }
-  }
-
-  .explorer_expandable-header {
+  /* Custom recipe node */
+  .explorer_graph-node {
+    position: relative;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
   }
 
-  .explorer_expand-toggle {
+    .explorer_graph-node--root > .recipe {
+      outline: 2px solid var(--explorer-line);
+    }
+
+    .explorer_graph-node--cycle {
+      opacity: 0.4;
+    }
+
+  /* Expand/collapse toggles on left/right of nodes */
+  .explorer_graph-toggle {
     flex-shrink: 0;
-    padding: 4px;
-    margin-top: 4px;
+    padding: 3px;
     cursor: pointer;
     opacity: 0.5;
     transition: opacity 150ms ease;
@@ -1705,31 +1574,34 @@ select {
     color: inherit;
   }
 
-    .explorer_expand-toggle:hover {
+    .explorer_graph-toggle:hover {
       opacity: 1;
     }
 
-    .explorer_expand-toggle > .icon {
+    .explorer_graph-toggle > .icon {
       display: block;
       transition: transform 150ms ease;
     }
 
-    .explorer_expand-toggle--collapsed > .icon {
+    .explorer_graph-toggle--left > .icon {
+      transform: rotate(90deg);
+    }
+
+    .explorer_graph-toggle--left.explorer_graph-toggle--collapsed > .icon {
+      transform: rotate(180deg);
+    }
+
+    .explorer_graph-toggle--right > .icon {
       transform: rotate(-90deg);
     }
 
-  .explorer_expandable-children {
-    margin-left: 12px;
-    padding-left: 8px;
-    border-left: 1px solid var(--explorer-line);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 4px;
-  }
+    .explorer_graph-toggle--right.explorer_graph-toggle--collapsed > .icon {
+      transform: rotate(0deg);
+    }
 
-  .explorer_expandable--cycle {
-    opacity: 0.4;
+  /* Smooth node position transitions on layout changes */
+  .react-flow__node {
+    transition: transform 250ms ease;
   }
 
 .foodseq {

@@ -13,6 +13,7 @@
     "ss14-cookbook-server": "./bin/server.js"
   },
   "devDependencies": {
+    "@dagrejs/dagre": "^1.1.4",
     "@fluent/bundle": "^0.19.1",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-html": "^2.0.0",
@@ -21,6 +22,7 @@
     "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.3.0",
+    "@types/dagre": "^0.7.52",
     "@types/node": "^24.9.2",
     "@types/pako": "^2.0.4",
     "@types/prompts": "^2.4.9",
@@ -43,6 +45,7 @@
     "sharp": "^0.34.5",
     "tslib": "^2.6.2",
     "typescript": "^5.9.3",
+    "@xyflow/react": "^12.6.4",
     "yaml": "^2.8.1"
   }
 }

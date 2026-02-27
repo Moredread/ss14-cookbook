@@ -83,8 +83,15 @@ export const ExpandableRecipe = memo(({
     [ancestors, id]
   );
 
+  const dirClass = direction === 'upstream' ? 'before' : 'after';
+  const arrowLabel = direction === 'upstream' ? 'Made with' : 'Used in';
+
+  let className = 'explorer_expandable';
+  if (isCycle) className += ' explorer_expandable--cycle';
+  if (expanded && hasRelated) className += ' explorer_expandable--expanded';
+
   return (
-    <div className={isCycle ? 'explorer_expandable explorer_expandable--cycle' : 'explorer_expandable'}>
+    <div className={className}>
       <div className='explorer_expandable-header'>
         {hasRelated && !isCycle &&
           <button
@@ -98,20 +105,25 @@ export const ExpandableRecipe = memo(({
         }
         <Recipe id={id} skipDefaultHeaderAction/>
       </div>
-      {expanded && hasRelated &&
-        <div className='explorer_expandable-children'>
-          {related.map(childId =>
-            <ExpandableRecipe
-              key={childId}
-              id={childId}
-              direction={direction}
-              ancestors={childAncestors}
-              depth={depth + 1}
-              onExpansionChange={onExpansionChange}
-            />
-          )}
+      {expanded && hasRelated && <>
+        <div className={`explorer_arrow explorer_arrow--${dirClass} explorer_arrow--current`}>
+          <span className='explorer_arrow-label'>{arrowLabel}</span>
         </div>
-      }
+        <div className={`explorer_list explorer_list--${dirClass}`}>
+          <div className='explorer_list-inner'>
+            {related.map(childId =>
+              <ExpandableRecipe
+                key={childId}
+                id={childId}
+                direction={direction}
+                ancestors={childAncestors}
+                depth={depth + 1}
+                onExpansionChange={onExpansionChange}
+              />
+            )}
+          </div>
+        </div>
+      </>}
     </div>
   );
 });
