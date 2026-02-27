@@ -57,6 +57,7 @@ export interface EntityPrototype extends PlainObject {
 export interface ReagentPrototype extends PlainObject {
   readonly type: 'reagent';
   readonly id: ReagentId;
+  readonly parent?: ReagentId;
   readonly name: string; // Fluent key :(
   readonly color?: string;
   readonly group?: string;

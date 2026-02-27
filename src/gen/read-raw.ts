@@ -135,6 +135,20 @@ export const readRawGameData = (yamlPaths: string[]): RawGameData => {
       }
     }
   }
+  // Resolve inherited group field through parent chains
+  for (const reagent of reagents.values()) {
+    if (reagent.group || !reagent.parent) continue;
+    let current = reagent;
+    while (!current.group && current.parent) {
+      const parent = reagents.get(current.parent);
+      if (!parent) break;
+      current = parent;
+    }
+    if (current.group) {
+      (reagent as any).group = current.group;
+    }
+  }
+
   return {
     entities,
     reagents,

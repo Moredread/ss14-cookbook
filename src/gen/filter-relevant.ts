@@ -103,6 +103,19 @@ export const filterRelevantPrototypes = (
     }
   } while (hasAnythingNew);
 
+  // Seed all drink-producing reactions as a root set.
+  // This ensures drink reagents are in usedReagents before the reaction
+  // expansion loop, which then picks up reactions that produce those
+  // reagents and transitively pulls in their ingredient reagents.
+  for (const reaction of raw.reactions) {
+    const reagentResult = getReagentResult(reaction);
+    if (!reagentResult) continue;
+    const reagent = raw.reagents.get(reagentResult[0]);
+    if (reagent?.group === 'Drinks') {
+      usedReagents.add(reagentResult[0]);
+    }
+  }
+
   // Now let's find reactions for all the reagents we've collected.
   do {
     hasAnythingNew = false;
