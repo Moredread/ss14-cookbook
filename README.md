@@ -1,5 +1,9 @@
 # SS14 Cookbook
 
+**This is a fork of [arimah/ss14-cookbook](https://github.com/arimah/ss14-cookbook).** It is experimental and under active development — expect force pushes to `main`.
+
+---
+
 This is the source code for the [SS14 Cookbook](https://ss14.recipes). You are free to fork it, clone it, set up your own cookbook and make changes. This source code is released under the terms of the [**AGPLv3**](./LICENSE.txt).
 
 
