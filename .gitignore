@@ -10,4 +10,7 @@ public/data/sprites*.webp
 
 privacy.html
 sources.yml
+sources.yaml
 .env
+
+.claude/
