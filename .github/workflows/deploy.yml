@@ -1,0 +1,89 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Clone fork sources (sparse)
+        run: |
+          clone_fork() {
+            local name="$1" repo="$2" branch="${3:-master}"
+            echo "::group::$name"
+            git clone \
+              --depth 1 \
+              --filter=blob:none \
+              --sparse \
+              --branch "$branch" \
+              -c http.postBuffer=524288000 \
+              "https://github.com/$repo.git" \
+              "sources/$name"
+            cd "sources/$name"
+            git sparse-checkout set Resources/Prototypes Resources/Locale Resources/Textures
+            cd ../..
+            echo "::endgroup::"
+          }
+
+          clone_fork base        space-wizards/space-station-14 &
+          clone_fork frontier    new-frontiers-14/frontier-station-14 &
+          clone_fork delta-v     DeltaV-Station/Delta-v &
+          clone_fork rmc         RMC-14/RMC-14 &
+          clone_fork floof       Fansana/floofstation1 &
+          clone_fork impstation  impstation/imp-station-14 &
+          clone_fork goobstation Goob-Station/Goob-Station &
+          clone_fork moff        moff-station/moff-station-14 &
+          wait
+
+      - name: Generate sources.yml
+        run: sed 's|../cookbook-sources/|sources/|g' sources.real.yml > sources.yml
+
+      - name: Create .env
+        run: |
+          printf '%s\n' \
+            'COOKBOOK_BASE_PATH=/ss14-cookbook' \
+            'COOKBOOK_REPO_URL=https://github.com/Moredread/ss14-cookbook' \
+            'COOKBOOK_TRUSTED_HOSTS=' \
+            'COOKBOOK_CANONICAL_URL=https://moredread.github.io/ss14-cookbook' \
+            > .env
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Generate recipe data
+        run: npm run gen:recipes
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: public/
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
