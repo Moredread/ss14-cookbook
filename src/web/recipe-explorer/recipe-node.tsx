@@ -7,6 +7,7 @@ export interface RecipeNodeData {
   recipeId: string;
   isRoot: boolean;
   isCycle: boolean;
+  direction: 'upstream' | 'downstream' | null;
   hasUpstream: boolean;
   hasDownstream: boolean;
   expandedUpstream: boolean;
@@ -25,6 +26,7 @@ export const RecipeNode = memo(({ id, data }: RecipeNodeProps): ReactElement => 
     recipeId,
     isRoot,
     isCycle,
+    direction,
     hasUpstream,
     hasDownstream,
     expandedUpstream,
@@ -56,7 +58,7 @@ export const RecipeNode = memo(({ id, data }: RecipeNodeProps): ReactElement => 
         style={{ visibility: 'hidden' }}
       />
 
-      {hasUpstream && !isCycle && !isRoot &&
+      {hasUpstream && !isCycle && !isRoot && direction === 'upstream' &&
         <button
           className={
             expandedUpstream
@@ -72,7 +74,7 @@ export const RecipeNode = memo(({ id, data }: RecipeNodeProps): ReactElement => 
 
       <Recipe id={recipeId} skipDefaultHeaderAction/>
 
-      {hasDownstream && !isCycle && !isRoot &&
+      {hasDownstream && !isCycle && !isRoot && direction === 'downstream' &&
         <button
           className={
             expandedDownstream

@@ -139,6 +139,7 @@ const RecipeGraphInner = memo(({ rootId }: RecipeGraphProps): ReactElement => {
           recipeId,
           isRoot,
           isCycle,
+          direction,
           hasUpstream: upstream.length > 0,
           hasDownstream: downstream.length > 0,
           expandedUpstream: expandedUp,

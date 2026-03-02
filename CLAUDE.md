@@ -66,6 +66,7 @@ Environment variables are configured via `.env` (production) and `.env.developme
 - TypeScript 5 (strict), React 19, React Router 7, PostCSS
 - Rollup 4 builds two artifacts: frontend IIFE (`public/assets/`) and generator CJS (`bin/recipe-gen.js`)
 - `yaml` for YAML parsing, `jimp`/`sharp` for sprite composition, `@fluent/bundle` for localization
+- `@xyflow/react` (React Flow) for the recipe explorer graph, `@dagrejs/dagre` for automatic graph layout
 - Environment variables are injected as compile-time constants via `@rollup/plugin-replace` (declared in `src/globals.d.ts`)
 
 ## Architecture
@@ -107,7 +108,7 @@ Sprites are rendered via CSS `background-position` offsets into a single WebP sp
 
 ### Recipe Explorer (`src/web/recipe-explorer/`)
 
-The recipe explorer is a popup overlay that shows a recipe with its upstream ("Made with") and downstream ("Used in") related recipes. Related recipes are expandable in a tree structure with cycle detection (via ancestor set tracking). Relation lookups use index maps (`recipesBySolidResult`, `recipesBySolidIngredient`, `recipesByReagentResult`, `recipesByReagentIngredient`) from `GameDataProvider`. The column layout auto-balances heights.
+The recipe explorer is a full-screen overlay using React Flow (`@xyflow/react`) to display a recipe graph with upstream ("Made with") and downstream ("Used in") related recipes. The graph uses dagre for automatic left-to-right layout. Each recipe is a custom `RecipeNode` with hidden handles and toggle buttons to expand/collapse upstream/downstream branches. The root node's immediate relations are always shown; non-root nodes are expandable via toggle. Cycle detection uses an ancestor set to prevent infinite recursion. Relation lookups use index maps (`recipesBySolidResult`, `recipesBySolidIngredient`, `recipesByReagentResult`, `recipesByReagentIngredient`) from `GameDataProvider`. Node types must be defined outside the component (React Flow requirement).
 
 ### Popup System (`src/web/popup-impl.tsx`)
 
