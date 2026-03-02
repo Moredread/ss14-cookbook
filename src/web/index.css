@@ -1527,7 +1527,9 @@ select {
     height: 100%;
   }
 
-    /* Hide default React Flow node styling */
+    /* Hide default React Flow node styling and restore pointer events
+       (React Flow sets inline pointer-events: none when elementsSelectable
+       and nodesDraggable are both false) */
     .explorer_graph .react-flow__node {
       padding: 0;
       border: none;
@@ -1537,6 +1539,7 @@ select {
       width: auto;
       font-size: inherit;
       color: inherit;
+      pointer-events: all !important;
     }
 
     .explorer_graph .react-flow__node:hover {
