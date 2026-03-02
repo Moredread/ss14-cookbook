@@ -145,6 +145,14 @@ interface RecipeBase {
   readonly solids: Readonly<Record<string, number>>;
   readonly reagents: Readonly<Record<string, ReagentIngredient>>;
   readonly group: string;
+  /**
+   * The reagents contained in the recipe's result, along with their effects.
+   *
+   * For `solidResult` recipes, these are the reagents from the result entity's
+   * food solution. For `reagentResult` recipes, this is the single produced
+   * reagent with `resultQty` as the quantity.
+   */
+  readonly resultReagents?: readonly ResultReagent[];
 }
 
 /**
@@ -289,6 +297,12 @@ export interface DeepFryRecipe extends RecipeBase {
   readonly method: 'deepFry';
   readonly solidResult: string;
   readonly reagentResult: null;
+}
+
+export interface ResultReagent {
+  readonly id: string;
+  readonly quantity: number;
+  readonly metabolisms?: ReagentMetabolisms;
 }
 
 export interface ReagentIngredient {

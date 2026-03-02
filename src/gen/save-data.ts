@@ -9,6 +9,7 @@ import {
   GameData,
   Reagent,
   Recipe,
+  ResultReagent,
 } from '../types';
 import { SpriteSheetData } from './build-spritesheet';
 import {
@@ -21,7 +22,7 @@ import { mapToObject } from './helpers';
 import { EntityId, TagId } from './prototypes';
 import { ResolvedGameData } from './resolve-prototypes';
 import { ResolvedSpecials } from './resolve-specials';
-import { MicrowaveRecipeTypes, ResolvedEntity } from './types';
+import { MicrowaveRecipeTypes, ResolvedEntity, ResolvedRecipe } from './types';
 
 export interface ProcessedGameData {
   readonly id: string;
@@ -83,7 +84,12 @@ export const saveData = async (
 
     const recipes: Recipe[] = [];
     for (const [id, recipe] of d.resolved.recipes) {
-      recipes.push({ id, ...recipe });
+      const resultReagents = getResultReagents(recipe, d.resolved);
+      recipes.push({
+        id,
+        ...recipe,
+        ...(resultReagents.length > 0 ? { resultReagents } : {}),
+      });
 
       for (const solid of Object.keys(recipe.solids)) {
         ingredients.add(solid);
@@ -218,6 +224,40 @@ const getFoodSequenceData = (
     seqElem: seqElem && seqElem.length > 0 ? seqElem : undefined,
     seqEnd: seqEnd && seqEnd.length > 0 ? seqEnd : undefined,
   };
+};
+
+const getResultReagents = (
+  recipe: ResolvedRecipe,
+  resolved: ResolvedGameData
+): readonly ResultReagent[] => {
+  if (recipe.solidResult) {
+    const entity = resolved.entities.get(recipe.solidResult);
+    const foodSolution = entity?.solution?.food;
+    if (!foodSolution?.reagents?.length) return [];
+
+    return foodSolution.reagents
+      .map(sr => {
+        const reagent = resolved.reagents.get(sr.ReagentId);
+        return {
+          id: sr.ReagentId,
+          quantity: sr.Quantity,
+          ...(reagent?.metabolisms ? { metabolisms: reagent.metabolisms } : {}),
+        };
+      });
+  }
+
+  if (recipe.reagentResult) {
+    const reagent = resolved.reagents.get(recipe.reagentResult);
+    if (!reagent) return [];
+
+    return [{
+      id: recipe.reagentResult,
+      quantity: recipe.resultQty ?? 1,
+      ...(reagent.metabolisms ? { metabolisms: reagent.metabolisms } : {}),
+    }];
+  }
+
+  return [];
 };
 
 const getSpriteHash = async (sheet: JimpInstance): Promise<string> => {
