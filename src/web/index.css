@@ -2113,6 +2113,28 @@ select {
   font-size: 0.8rem;
 }
 
+.result-effects_reagent + .result-effects_reagent {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--fg-subtle);
+}
+
+.result-effects_reagent-header {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.result-effects_reagent-name {
+  font-weight: 600;
+}
+
+.result-effects_reagent-qty {
+  font-size: 0.8rem;
+  color: var(--fg-subtle);
+}
+
 .notice {
   box-sizing: border-box;
   display: flex;

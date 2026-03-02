@@ -1,6 +1,9 @@
-import { ReactElement, memo } from 'react';
-import { Recipe } from '../types';
+import { ReactElement, Ref, cloneElement, memo } from 'react';
+import { createPortal } from 'react-dom';
+import { Recipe, ResultReagent } from '../types';
 import { useGameData } from './context';
+import { getPopupRoot, usePopupTrigger } from './popup-impl';
+import { ReagentEffects } from './reagent-effects';
 import { EntitySprite, ReagentSprite } from './sprites';
 import { Tooltip } from './tooltip';
 
@@ -21,6 +24,8 @@ export const RecipeResult = memo(({
     : undefined;
   const resultQty = recipe.resultQty ?? 1;
 
+  const hasEffects = recipe.resultReagents?.some(r => r.metabolisms);
+
   if (solidResult) {
     return (
       <span className='recipe_result'>
@@ -32,6 +37,11 @@ export const RecipeResult = memo(({
               {resultQty}
             </span>
           </Tooltip>
+        )}
+        {hasEffects && (
+          <ResultEffectsPopup resultReagents={recipe.resultReagents!}>
+            <span className='reagent-effects_trigger'>fx</span>
+          </ResultEffectsPopup>
         )}
       </span>
     );
@@ -57,8 +67,75 @@ export const RecipeResult = memo(({
             {`${resultQty}u`}
           </span>
         </Tooltip>
+        {hasEffects && (
+          <ResultEffectsPopup resultReagents={recipe.resultReagents!}>
+            <span className='reagent-effects_trigger'>fx</span>
+          </ResultEffectsPopup>
+        )}
       </span>
     );
   }
   return <span>ERROR!</span>;
+});
+
+interface ResultEffectsPopupProps {
+  resultReagents: readonly ResultReagent[];
+  children: ReactElement<{ ref?: Ref<HTMLElement> }>;
+}
+
+const ResultEffectsPopup = ({
+  resultReagents,
+  children,
+}: ResultEffectsPopupProps): ReactElement => {
+  const { visible, popupRef, parentRef } = usePopupTrigger<HTMLDivElement>(
+    'below'
+  );
+
+  const childWithRef = cloneElement(children, { ref: parentRef });
+
+  return <>
+    {childWithRef}
+    {visible && createPortal(
+      <div className='popup popup--effects' ref={popupRef}>
+        <ResultReagentEffects resultReagents={resultReagents}/>
+      </div>,
+      getPopupRoot()
+    )}
+  </>;
+};
+
+interface ResultReagentEffectsProps {
+  resultReagents: readonly ResultReagent[];
+}
+
+const ResultReagentEffects = memo(({
+  resultReagents,
+}: ResultReagentEffectsProps): ReactElement => {
+  const { reagentMap } = useGameData();
+
+  return (
+    <div className='result-effects'>
+      {resultReagents.map(rr => {
+        const reagent = reagentMap.get(rr.id);
+        return (
+          <div key={rr.id} className='result-effects_reagent'>
+            <span className='result-effects_reagent-header'>
+              <span
+                className='result-effects_reagent-name'
+                style={{ color: reagent?.color }}
+              >
+                {reagent?.name ?? rr.id}
+              </span>
+              <span className='result-effects_reagent-qty'>
+                {rr.quantity}u
+              </span>
+            </span>
+            {rr.metabolisms && (
+              <ReagentEffects metabolisms={rr.metabolisms}/>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 });
