@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { Recipe, ResultReagent } from '../types';
 import { useGameData } from './context';
 import { getPopupRoot, usePopupTrigger } from './popup-impl';
-import { ReagentEffects } from './reagent-effects';
+import { hasInterestingEffects, ReagentEffects } from './reagent-effects';
+import { useSettings } from './settings';
 import { EntitySprite, ReagentSprite } from './sprites';
 import { Tooltip } from './tooltip';
 
@@ -15,6 +16,7 @@ export const RecipeResult = memo(({
   recipe,
 }: RecipeResultProps): ReactElement => {
   const { entityMap, reagentMap } = useGameData();
+  const [{ showBoringEffects }] = useSettings();
 
   const solidResult = recipe.solidResult
     ? entityMap.get(recipe.solidResult)
@@ -24,7 +26,9 @@ export const RecipeResult = memo(({
     : undefined;
   const resultQty = recipe.resultQty ?? 1;
 
-  const hasEffects = recipe.resultReagents?.some(r => r.metabolisms);
+  const hasEffects = recipe.resultReagents?.some(r =>
+    r.metabolisms && (showBoringEffects || hasInterestingEffects(r.metabolisms))
+  );
 
   if (solidResult) {
     return (

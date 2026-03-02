@@ -6,6 +6,29 @@ import {
   ReagentMetabolisms,
 } from '../types';
 import { useGameData } from './context';
+import { useSettings } from './settings';
+
+const BoringEffects: ReadonlySet<string> = new Set([
+  'SatiateHunger',
+  'SatiateThirst',
+]);
+
+/** Returns true if the metabolisms contain effects beyond basic satiation. */
+export const hasInterestingEffects = (metabolisms: ReagentMetabolisms): boolean => {
+  for (const group of Object.values(metabolisms)) {
+    if (group.metabolites && Object.keys(group.metabolites).length > 0) {
+      return true;
+    }
+    if (group.effects) {
+      for (const effect of group.effects) {
+        if (!BoringEffects.has(effect.type)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
 
 export interface ReagentEffectsProps {
   metabolisms: ReagentMetabolisms;
@@ -14,6 +37,7 @@ export interface ReagentEffectsProps {
 export const ReagentEffects = memo(({
   metabolisms,
 }: ReagentEffectsProps): ReactElement => {
+  const [{ showBoringEffects }] = useSettings();
   const groups = Object.entries(metabolisms);
 
   return (
@@ -23,6 +47,7 @@ export const ReagentEffects = memo(({
           key={groupName}
           name={groupName}
           group={group}
+          showBoring={showBoringEffects}
         />
       )}
     </div>
@@ -32,13 +57,18 @@ export const ReagentEffects = memo(({
 interface MetabolismGroupViewProps {
   name: string;
   group: MetabolismGroup;
+  showBoring: boolean;
 }
 
 const MetabolismGroupView = ({
   name,
   group,
+  showBoring,
 }: MetabolismGroupViewProps): ReactElement => {
   const { reagentMap } = useGameData();
+  const effects = showBoring
+    ? group.effects
+    : group.effects?.filter(e => !BoringEffects.has(e.type));
 
   return (
     <div className='reagent-effects_group'>
@@ -68,9 +98,9 @@ const MetabolismGroupView = ({
           })}
         </div>
       )}
-      {group.effects && group.effects.length > 0 && (
+      {effects && effects.length > 0 && (
         <ul className='reagent-effects_list'>
-          {group.effects.map((effect, i) =>
+          {effects.map((effect, i) =>
             <li key={i} className='reagent-effects_effect'>
               {describeEffect(effect)}
               {effect.probability != null && effect.probability < 1 && (

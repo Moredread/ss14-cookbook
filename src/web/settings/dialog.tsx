@@ -1,4 +1,5 @@
-import { KeyboardEvent, ReactElement, useCallback } from 'react';
+import { ChangeEvent, KeyboardEvent, ReactElement, useCallback } from 'react';
+import { Checkbox } from '../checkbox';
 import { FocusTrap } from '../focus';
 import { TemperatureUnitSetting, ThemeSetting, useSettings } from './context';
 import { Option, OptionGroup } from './option-group';
@@ -38,6 +39,14 @@ export const SettingsDialog = ({
     });
   }, [update]);
 
+  const handleChangeBoringEffects = useCallback((
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    update(draft => {
+      draft.showBoringEffects = e.target.checked;
+    });
+  }, [update]);
+
   return (
     <FocusTrap onPointerDownOutside={onClose}>
       <div className='settings' tabIndex={-1} onKeyDown={handleKeyDown}>
@@ -58,6 +67,13 @@ export const SettingsDialog = ({
           value={settings.temperatureUnit}
           onChange={handleChangeTemperatureUnit}
         />
+
+        <Checkbox
+          checked={settings.showBoringEffects}
+          onChange={handleChangeBoringEffects}
+        >
+          Show hunger/thirst effects
+        </Checkbox>
       </div>
     </FocusTrap>
   );

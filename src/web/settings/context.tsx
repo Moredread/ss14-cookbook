@@ -14,6 +14,7 @@ import { SettingsKey, useStorage } from '../storage';
 export interface Settings {
   readonly theme: ThemeSetting;
   readonly temperatureUnit: TemperatureUnitSetting;
+  readonly showBoringEffects: boolean;
 }
 
 export type ThemeSetting = 'dark' | 'light';
@@ -29,6 +30,7 @@ export type SettingsUpdater = (f: Producer<Settings>) => void;
 export const DefaultSettings: Settings = {
   theme: 'dark',
   temperatureUnit: 'kelvin',
+  showBoringEffects: false,
 };
 
 const SettingsContext = createContext<[Settings, SettingsUpdater]>([

@@ -249,11 +249,10 @@ const getResultReagents = (
             ? transformMetabolisms(raw.metabolisms)
             : undefined;
         }
-        const interesting = metabolisms && hasInterestingEffects(metabolisms);
         return {
           id: sr.ReagentId,
           quantity: sr.Quantity,
-          ...(interesting ? { metabolisms } : {}),
+          ...(metabolisms ? { metabolisms } : {}),
         };
       });
   }
@@ -270,28 +269,6 @@ const getResultReagents = (
   }
 
   return [];
-};
-
-const BoringEffects: ReadonlySet<string> = new Set([
-  'SatiateHunger',
-  'SatiateThirst',
-]);
-
-/** Returns true if the metabolisms contain effects beyond basic satiation. */
-const hasInterestingEffects = (metabolisms: ReagentMetabolisms): boolean => {
-  for (const group of Object.values(metabolisms)) {
-    if (group.metabolites && Object.keys(group.metabolites).length > 0) {
-      return true;
-    }
-    if (group.effects) {
-      for (const effect of group.effects) {
-        if (!BoringEffects.has(effect.type)) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
 };
 
 const getSpriteHash = async (sheet: JimpInstance): Promise<string> => {

@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import { ReagentIngredient as ReagentIngredientData, Reagent } from '../types';
 import { useGameData } from './context';
 import { getPopupRoot, usePopupTrigger } from './popup-impl';
-import { ReagentEffects } from './reagent-effects';
+import { hasInterestingEffects, ReagentEffects } from './reagent-effects';
 import { RecipePopup } from './recipe-popup';
+import { useSettings } from './settings';
 import { EntitySprite, ReagentSprite } from './sprites';
 import { Tooltip } from './tooltip';
 
@@ -96,9 +97,12 @@ export const ReagentIngredient = ({
   catalyst = false,
 }: ReagentIngredientProps): ReactElement => {
   const { reagentMap, recipesByReagentResult } = useGameData();
+  const [{ showBoringEffects }] = useSettings();
   const reagent = reagentMap.get(id);
   const name = reagent?.name ?? id;
   const relatedRecipes = recipesByReagentResult.get(id);
+  const showFx = reagent?.metabolisms &&
+    (showBoringEffects || hasInterestingEffects(reagent.metabolisms));
 
   const formattedAmount = typeof amount === 'number'
     ? `${amount}u `
@@ -120,7 +124,7 @@ export const ReagentIngredient = ({
           {' '}
           <Tooltip
             text={
-              `You won’t lose any of the ${
+              `You won't lose any of the ${
                 name
               } when making this recipe.`
             }
@@ -130,7 +134,7 @@ export const ReagentIngredient = ({
             </span>
           </Tooltip>
         </>}
-        {reagent?.metabolisms && (
+        {showFx && (
           <ReagentEffectsPopup reagent={reagent}>
             <span className='reagent-effects_trigger'>fx</span>
           </ReagentEffectsPopup>
