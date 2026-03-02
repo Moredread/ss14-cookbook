@@ -236,6 +236,20 @@ const describeCondition = (cond: ReagentEffectCondition): string => {
       const label = types?.join(', ') ?? 'unknown';
       return inverted ? `not ${label}` : `${label} only`;
     }
+    case 'ReagentThreshold': {
+      const min = cond.min as number | undefined;
+      const max = cond.max as number | undefined;
+      if (min != null && max != null) {
+        return `${min}\u2013${max}u in body`;
+      }
+      if (min != null) {
+        return `\u2265${min}u in body`;
+      }
+      if (max != null) {
+        return `\u2264${max}u in body`;
+      }
+      return 'reagent threshold';
+    }
     case 'OrganType': {
       const orgType = cond.typeValue as string | undefined;
       return orgType ? `organ: ${orgType}` : 'organ condition';

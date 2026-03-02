@@ -8,6 +8,7 @@ import {
   ForkData,
   GameData,
   Reagent,
+  ReagentMetabolisms,
   Recipe,
   ResultReagent,
 } from '../types';
@@ -238,10 +239,11 @@ const getResultReagents = (
     return foodSolution.reagents
       .map(sr => {
         const reagent = resolved.reagents.get(sr.ReagentId);
+        const interesting = reagent?.metabolisms && hasInterestingEffects(reagent.metabolisms);
         return {
           id: sr.ReagentId,
           quantity: sr.Quantity,
-          ...(reagent?.metabolisms ? { metabolisms: reagent.metabolisms } : {}),
+          ...(interesting ? { metabolisms: reagent!.metabolisms } : {}),
         };
       });
   }
@@ -258,6 +260,28 @@ const getResultReagents = (
   }
 
   return [];
+};
+
+const BoringEffects: ReadonlySet<string> = new Set([
+  'SatiateHunger',
+  'SatiateThirst',
+]);
+
+/** Returns true if the metabolisms contain effects beyond basic satiation. */
+const hasInterestingEffects = (metabolisms: ReagentMetabolisms): boolean => {
+  for (const group of Object.values(metabolisms)) {
+    if (group.metabolites && Object.keys(group.metabolites).length > 0) {
+      return true;
+    }
+    if (group.effects) {
+      for (const effect of group.effects) {
+        if (!BoringEffects.has(effect.type)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 };
 
 const getSpriteHash = async (sheet: JimpInstance): Promise<string> => {
