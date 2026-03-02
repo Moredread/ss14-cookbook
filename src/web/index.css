@@ -2061,6 +2061,7 @@ select {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding-left: 8px;
 }
 
   .reagent-effects_group + .reagent-effects_group {
