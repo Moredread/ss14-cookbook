@@ -247,7 +247,7 @@ function* reactionRecipes(
   }
 }
 
-const transformMetabolisms = (
+export const transformMetabolisms = (
   raw: Readonly<Record<string, unknown>> | undefined
 ): ReagentMetabolisms | undefined => {
   if (!raw) return undefined;

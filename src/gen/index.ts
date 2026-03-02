@@ -148,6 +148,7 @@ const buildFork = async (id: string, fork: ForkInfo): Promise<ProcessedGameData>
     sprites: spriteSheet,
     microwaveRecipeTypes: fork.microwaveRecipeTypes,
     sortingIdRewrites,
+    allReagents: raw.reagents,
     commitHash,
     repo: fork.repo,
   };

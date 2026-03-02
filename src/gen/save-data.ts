@@ -20,8 +20,8 @@ import {
   SpriteSheetPath,
 } from './constants';
 import { mapToObject } from './helpers';
-import { EntityId, TagId } from './prototypes';
-import { ResolvedGameData } from './resolve-prototypes';
+import { EntityId, ReagentMap, TagId } from './prototypes';
+import { ResolvedGameData, transformMetabolisms } from './resolve-prototypes';
 import { ResolvedSpecials } from './resolve-specials';
 import { MicrowaveRecipeTypes, ResolvedEntity, ResolvedRecipe } from './types';
 
@@ -39,6 +39,7 @@ export interface ProcessedGameData {
   readonly sprites: SpriteSheetData;
   readonly microwaveRecipeTypes?: MicrowaveRecipeTypes;
   readonly sortingIdRewrites: Record<string, string>;
+  readonly allReagents: ReagentMap;
   readonly repo: string;
   readonly commitHash: string;
 }
@@ -85,7 +86,7 @@ export const saveData = async (
 
     const recipes: Recipe[] = [];
     for (const [id, recipe] of d.resolved.recipes) {
-      const resultReagents = getResultReagents(recipe, d.resolved);
+      const resultReagents = getResultReagents(recipe, d.resolved, d.allReagents);
       recipes.push({
         id,
         ...recipe,
@@ -229,7 +230,8 @@ const getFoodSequenceData = (
 
 const getResultReagents = (
   recipe: ResolvedRecipe,
-  resolved: ResolvedGameData
+  resolved: ResolvedGameData,
+  allReagents: ReagentMap
 ): readonly ResultReagent[] => {
   if (recipe.solidResult) {
     const entity = resolved.entities.get(recipe.solidResult);
@@ -238,12 +240,20 @@ const getResultReagents = (
 
     return foodSolution.reagents
       .map(sr => {
-        const reagent = resolved.reagents.get(sr.ReagentId);
-        const interesting = reagent?.metabolisms && hasInterestingEffects(reagent.metabolisms);
+        // Try resolved reagents first, fall back to raw prototype data
+        // for reagents outside the food/drink filter (e.g. Theobromine)
+        let metabolisms = resolved.reagents.get(sr.ReagentId)?.metabolisms;
+        if (!metabolisms) {
+          const raw = allReagents.get(sr.ReagentId);
+          metabolisms = raw?.metabolisms
+            ? transformMetabolisms(raw.metabolisms)
+            : undefined;
+        }
+        const interesting = metabolisms && hasInterestingEffects(metabolisms);
         return {
           id: sr.ReagentId,
           quantity: sr.Quantity,
-          ...(interesting ? { metabolisms: reagent!.metabolisms } : {}),
+          ...(interesting ? { metabolisms } : {}),
         };
       });
   }
